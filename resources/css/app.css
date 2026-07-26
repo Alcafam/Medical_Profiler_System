@@ -1,0 +1,139 @@
+@import 'bootstrap/dist/css/bootstrap-grid.min.css';
+@import 'bootstrap/dist/css/bootstrap-utilities.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+}
+
+.encode-back-fab {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 1100;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    background-color: #2563eb;
+    color: #fff;
+    box-shadow:
+        0 6px 10px rgba(15, 23, 42, 0.18),
+        0 2px 4px rgba(15, 23, 42, 0.12);
+    text-decoration: none;
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.encode-back-fab:hover {
+    background-color: #1d4ed8;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow:
+        0 10px 18px rgba(15, 23, 42, 0.22),
+        0 4px 8px rgba(15, 23, 42, 0.14);
+}
+
+.encode-back-fab:active {
+    transform: scale(0.98);
+}
+
+@media (min-width: 640px) {
+    .encode-back-fab {
+        top: 1.5rem;
+        right: 1.5rem;
+    }
+}
+
+/* Exact 30 / 70 columns for encoder clients layout */
+.col-30 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.col-70 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+@media (min-width: 992px) {
+    .col-30 {
+        width: 30%;
+    }
+
+    .col-70 {
+        width: 70%;
+    }
+}
+
+.encoder-clients-shell {
+    height: 100%;
+    min-height: 0;
+}
+
+.encoder-clients-shell > .row {
+    height: 100%;
+    min-height: 0;
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+}
+
+.encoder-clients-shell .col-30,
+.encoder-clients-shell .col-70 {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+}
+
+.encoder-clients-shell .col-panel {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.encoder-clients-table {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.encoder-clients-table table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.encoder-clients-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+}
+
+.encoder-clients-table thead th:last-child,
+.encoder-clients-table tbody td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    box-shadow: -4px 0 8px -4px rgba(15, 23, 42, 0.12);
+}
+
+.encoder-clients-table thead th:last-child {
+    background: #f8fafc;
+    z-index: 3;
+}
+
+.encoder-clients-table tbody tr.bg-teal-50 td:last-child,
+.encoder-clients-table tbody tr[class*='bg-teal-50'] td:last-child {
+    background: #f0fdfa;
+}

@@ -1,0 +1,110 @@
+Last Name,First Name,Sex,Height (cm),Weight (kg),Temperature (Celsius),Heart Rate (bpm),SPO2,Respiratory Rate,Systolic,Diastolic,CBG,Fasting State,History,Current Conditions,Current Medications,Allergies,Notes
+Kilakil,Analyn,Female,163,77,36,103,96,,120,80,129,Non-fasting,,,,,
+Bolide,Angie,Female,161,79,36.3,63,94,,140,90,134,Non-fasting,"Maintenance - erbizartan 300mg, ateninol for 25 yrs, before, amlodipin ang tine-take tas tumigil tas nag telmezartan. tapos, nagpa lab,",,"Telmezartan 40mg, multivit-plus, atorvastatin 10mg",,"Telmezartan 10mg OD morning, atorvastatin 10mg OD evening, B-complex, weight management, iwas sa street food"
+Ramos,Ayn,Female,156,63,36.3,100,64,,130,90,168,Non-fasting,,,,,
+Kilakil,Benjie,Male,158.496,60,36.6,54,97,,100,70,109,Non-fasting,,,,,
+Amaki,Danica,Female,158,72.7,36,94,96,,90,70,112,Non-fasting,,,,,
+Gallardo,Edwin,Male,168,63,37.4,90,99,20,140,100,100,Fasting ,"HPI:
+60 y/o F, known HTN, c/o intermittent headache x3d, dull, occipital, 5/10, non-radiating, no clear triggers. (+) occasional dizziness, (−) blurred vision, (−) chest pain, (−) dyspnea, (−) focal neuro deficits. (+) poor medication compliance x2 wks, (−) trauma, (−) fever, (−) infection.
+
+PMH:
+HTN x10 y, (−) DM, (−) CAD, (−) stroke, (−) prior hypertensive emergencies, surgical hx: (−).
+
+Family Hx:
+Father: HTN, d. CVA 72 y
+Mother: HTN, alive 82 y
+Siblings: 1 brother (+) HTN, 1 sister (−) medical conditions
+Children: 3, all (−) chronic illnesses
+(−) FHx DM, CAD, CKD, malignancy",Hypertension,"Amlodipine 5 mg/tab, 1 tab once daily
+Losartan 50 mg/tab, 1 tab once daily
+Hydrochlorothiazide 25 mg/tab, 1/2 tab once daily",None,"BP elevated; likely due to non-compliance. 
+Advised strict medication adherence, low-sodium diet, and regular exercise. 
+Monitor BP at home if possible. 
+Educated on red flag symptoms. 
+"
+Salire,Emily,Female,155,71,36.1,82,94,,110,80,163,Non-fasting,,,amlodipine 5mg,,"lose weight, lifestyle changes, less salty food, 
+
+cetirizine, symdex-d,  10 mg amlodipine, celecoxib - for husband, suffered a fall, with pelvic pain"
+Singwey,Eugene,Male,167,52.25,36.3,100,91,,120,80,,,,,,,
+Rivera,Evelyn,Female,145,50.4,36.7,94,95,,100,70,124,Non-fasting,"high uric acid,  Allopurinol, w gouty tophi",,"Allopurinol, calcium",,"less carbs, Vit. for the bones (calcium supplement), Allopurinol, Warm compress for the hands"
+Baliwan,Feliza,Female,153,64,36.3,66,94,,110,80,172,Known Diabetic,,,,,
+Aplaten,Garry,Male,168,120,36.1,79,93,,140,100,238,Non-fasting,"Family history ng diabetes. wfh, night duty, no consistent sleep routine.",,,,"Netformin 500mg 3x a day - kunin nio na po yung isang box, weight management, BP monitoring, pa alisin ang stressor"
+Dogaong,Gift,Female,158.496,58,36.3,100,95,,110,80,111,Non-fasting,,,,,
+Lubang,Jeannette,Female,154,72.65,36.2,105,97,,130,90,150,Non-fasting,"Maintenance - elmizartan, cerc for 4 yrs, andaming nawalang organ (patanong ulet ano mga yun..haha)",,,,"Betahestine 16mg after meal trice a day or 1 a day, weight management"
+Jagonase,Jerry,Male,156,70,36,87,95,,130,80,148,Non-fasting,"asthma attacks every night (triggers- weather and dust), with white-ish phlegm every afternoon to night, diagnosed with asthma since 2020, condition persistent even with maintenance medication","Asthma, Allergic Rhinitis",Salmeflo,rhinitis,"Celecoxib 200mg, Cetirizine"
+Gamonnac,John,Male,167,94.85,36.4,98,92,,120,70,103,Non-fasting,,,,,
+Songgadan,Judith,Female,155.448,62,36.6,83,96,,210,130,161,Non-fasting,"with maintenance, 5mg amlodipine every night, since 2016",,,,"5mg amlodipine every night for 1 month, check BP every morning (c/o: Olive), lose weight"
+Lohan,Kathrine,Female,146,56,36.5,92,96,,130,90,178,Non-fasting,"flactuating BP (high to low), masakit na batok, (with acquired diabetes type I)",,,,"lose weight, less sweet, bread, pasta, check BP every morning for 3 days (c/o: Xyxy)"
+Amaki,Kenneth,Male,160,68,36,83,95,,130,80,113,Non-fasting,Maintenance - luzartan 50mg,,,,"Multivitamins, Luzartan 50mg, weight management, BP monitoring, "
+Llena,Marilene,Female,135,55,36.1,78,95,,120,80,,,,,"Multivit, Pregabalin 150mg",,"Vitamin B-complex, Pregabalin 150mg night (take only if nafeel lang), proper sleep"
+Aplaten,Marlene,Female,150,73.3,36.4,87,96,,120,80,116,Non-fasting,"hypertension sa family. night duty, no proper sleep routine",,,,"Multivitamins, weight management"
+Montano,Mary,Female,146.304,55,36.5,74,87,,140,80,149,Non-fasting,consistently taking losartan,,"losartan 50mg, Citirizine, syndex",,"lose weight, losartan, cetirizine"
+Khalang,Mildred,Female,190,71.7,6.7,80,95,,160,110,97,Fasting ,"HPI:
+Patient with hx of ↑ BP and high BG noted ~2 y PTA. Initially evaluated with labs (details not available) by previous MD; no follow-up done.
+
+Started on maintenance meds: telmisartan OD (AM), amlodipine and atorvastatin (PM). Patient reports intermittent non-compliance, specifically self-discontinued telmisartan.
+
+Patient notes BP remains within normal range when abstaining from alcohol intake; reports ↑ BP associated with alcohol consumption.
+
+Prior to 2 y PTA, patient was not on any maintenance medications.
+
+PMH:
+(+) HTN
+(+) Hyperglycemia / r/o DM
+
+Medications:
+Telmisartan OD (self-discontinued)
+Amlodipine OD
+Atorvastatin OD",,"Amlodipine 10, telmisartan 80, Aspirin 100, atorvastatine 40, vitamin b complex ",,
+Domiclong,Mina,Female,150,67,35.8,64,94,,150,100,88,Fasting ,,,Amlodipine 10,,"Amplodipine 10 mg 1 tab once a day, multivitamins, maintain proper sleep sched, proper diet, maintenance"
+Domiclong,Mudzna,Female,149,51,36,82,97,,110,70,122,Non-fasting,,,"Amlodipine, Losartan - 2018, had consultation 140/100
+8 AM - last meal
+BP increases 120/80 when tired - minimal activity",,"Amlodipine - 5, Losartan - 50"
+Capon,Natalie,Female,163,93,36.6,81,93,,120,90,80,Non-fasting,"Pag umaga, nag cra-cramps ang hands,",,,,"Ceterzine 10mg OD evening, weight management, mag gatas, potassium (saging), BP monitoring"
+Redobla,Olive,Female,146,51,36.3,90,93,,100,60,161,Non-fasting,,,,,"Multivitamins, weight management."
+Salire,Rachel,Female,163,76,36.5,86,97,,110,80,140,Non-fasting,160,,,,
+Bolide,Ratchelle,Female,160,55.9,36,105,97,,120,70,,,,,,,
+Bolide,Robert,Male,167,81.06,36.5,53,94,,110,70,143,Non-fasting,"may gout, declofinat 100mg, last week ang last lab, lab ulet bukas, ",,Multivit,,"Multivitamins, weight management, less red meat"
+Rivera,Roland,Male,173.736,89,36.4,95,93,,130,70,140,Non-fasting,"Allopurinol, Colchicine 500, ",,"colchicine 500mg, 100mg allpurinol, celecoxib",,"colchicine 500mg, 100mg allpurinol, celecoxib, iwas sa food with high uric acids"
+Jagonase,Rosary,Female,151,61,36,87,97,,100,80,121,Non-fasting,,,,,
+Dogaong,Russken,Male,162,84,36,125,98,,110,70,96,Non-fasting,"Telmezartan 80mg ng umaga, amlodipine 8mg, binawasan ang dose to 40mg at 4mg.",,,,"Telmezartan 80mg, weight management, pls gamitin nio po ng maayos yung walking pad, inom inom dn po ng tubig hindi mountain due, paki sabi ng NO sa mga nagpupuyat sau. Pa announce sa members na sabihin sa tamang oras ang problem"
+Maramba,Ruth,Female,162,78,36.2,97,96,,130,90,149,Non-fasting,,,,,
+Gammonac,Vicky,Female,164.592,60,36,86,96,,110,80,105,Non-fasting,,,,,
+Agbayani,Agabayani,Female,149,40,36,100,86,,90,60,98,Non-fasting,,,,,
+Ebra,Aldwin,Male,170,89.25,36,81,95,,100,70,135,Non-fasting,,,,,
+Due,Armenia,Female,159,55,36,79,99,,130,70,88,Non-fasting,,,,,
+Dogaong,Azril,Male,163,72,36.6,81,96,,130,80,,,,,,,
+Dogaong,Breil,Male,172,77,36,115,93,,100,70,91,Fasting ,,,,,
+Buting,Daniel,Male,176,99,36,102,94,,150,100,128,Non-fasting,,,,,
+Balageo,Franz,Male,169,82,36.7,88,96,,110,90,,,,,,,
+Coria-en,Grace,,162,75,36.12,86,98,,120,90,92,Fasting ,,,,,
+Jagonase,Jem,Female,150,57,35.9,75,96,,100,80,112,Non-fasting,,,,,
+Mamaril,Jenica,Female,159,82,36.1,94,97,,100,60,143,Non-fasting,"with PCOS, metformin is no-no, contraceptives",,Contraceptive,,"lose weight, lifestyle changes, 500mg metformin (once a day for 2 weeks)"
+Rivera,John,Male,165,75,36,130,99,,120,90,156,Non-fasting,May gout and high uric acid sa family. night duty. nag jumpers knee last february. masakit if left right ang walk. parang walang lubricant yung joints. ,,,Rhinitis,"Ibuprufen 200mg take as needed only, Multivitamins, Cetirizin 10mg OD evening, Iwas sa salty food, weight management, less red meat, mag BP monitoring, ayusin ang pag upo."
+Biuag,John,Male,172,72,36,70,97,,90,60,89,Non-fasting,,,,,
+Antonio,Kane,Female,155,68,36.7,68,97,,,,,,,,,,
+Rivera,Rose,Female,153,68,36.5,115,95,,110,70,125,Non-fasting,"MCP Joint Pain, sharp. With previous history of same pain. Pt was advised allopurinol 1 month.  With pain in the hip joint, precipitated by movement, prolonged standing and sitting.",,,,"Allopurinol for 2 weeks, less food in high uric, stretch legs (squat or lunges), warm compress every night or every in pain"
+Lumanlan,Russel,Male,169,78,36.8,96,95,,110,70,107,Non-fasting,,,,,
+Likigan,Samuel,Male,170,85,36.3,88,92,,140,80,159,Non-fasting,,,,,
+Claravall,Sophia,Female,156,63,36.6,87,93,,110,,93,Non-fasting,,,,,
+Segnaben,Amanda,Female,156,49,36.5,77,96,,90,50,,,,,,,
+Baturi,Angelrica,Female,153,42,36.3,114,96,,90,60,111,Non-fasting,,,,,
+Kilakil,Benjie,Male,164,55,36.7,95,96,,,,,,"multiple, erythematous, patches, with flaking and dryness of the skin on the MCP joints of the hands. with pain on stretch",,,,"cetirizine every night before sleep for 3 days, no malansa na food (egg, chicken, seafoods), "
+Penchog,Brett,Male,175,79,36.7,78,95,,110,80,,,,,,,
+Baldic,Christian,Male,159,55,36.2,103,99,,,,,,,,,,
+Capon,Denis,Female,159,57,36,97,97,,90,60,107,Non-fasting,,,,,
+Ramos,Gecillie,Female,155,60,36,100,97,,,,100,Non-fasting,,,,,
+Ngawit,Jean,Female,164,55,36.5,88,98,,110,70,112,Non-fasting,,,,,
+Biuag,Jeremiah,Male,162,53,35.2,95,93,,110,80,,,,,,,
+Respensor,John,Male,164,50,36.8,112,97,,90,60,,,,,,,
+Espejo,Julie,Female,146,41.5,36.5,120,98,,100,60,157,Non-fasting,,,,,
+Dancel,Karl Rove,Male,160,51.5,36.7,110,92,,,,,,,,,,
+Perlas,Kimberlyn,Female,154,40.9,36.6,91,98,,100,70,98,Non-fasting,,,,,
+Legaspi,Natalie,Female,149,43,36.2,97,95,,100,60,147,Non-fasting,,,,,
+Nicdao,Nico,Male,164,57.55,36,71,97,,100,70,109,Non-fasting,,,,,
+Limon,Raine,Female,155,78,36.2,82,98,,120,90,94,Non-fasting,,,"Citirizine, syndex, multi Vit",,
+Salire,Sofia,Female,156,50.7,36.3,81,98,,100,60,126,Non-fasting,,,,,
+Kilakil,Stacey,Female,155,60,36.3,64,96,,110,70,108,Non-fasting,,,,,
+Chilagan,Wrhaines,Female,159,53,36,111,95,,110,70,,,"Madaling mapagod, ",,Multivit,,"Multivitamins, no junk foods na kasi te"
+Escalante,Emilita,Female,155,,36.3,76,96,,169,80,92,Non-fasting,,,Amlodipine 5mg,,"amlodipine 5mg OD, proper diet, fix sleep position, monitoring of BP,"
+Desear,Myrna,,153,53.1,36.6,100,97,,150,90,101,Fasting ,"No maintenance, may bunyon (d alam if gout)",,"Amlodipine 5mg, multi Vit",,"amplodipine 5mg OD, BP monitoring, proper diet, multivitamins"
