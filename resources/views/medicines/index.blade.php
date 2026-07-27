@@ -5,10 +5,10 @@
                 {{ $archived ? 'Archived Medicines' : 'Medicine Inventory' }}
             </h2>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                @if ($archived)
-                    <a href="{{ route('medicines.index') }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Active inventory</a>
+                    @if ($archived)
+                    <a href="{{ route('medicines.index', array_filter(['q' => $q ?: null])) }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Active inventory</a>
                 @else
-                    <a href="{{ route('medicines.index', ['archived' => 1]) }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Archived</a>
+                    <a href="{{ route('medicines.index', array_filter(['archived' => 1, 'q' => $q ?: null])) }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Archived</a>
                     <a href="{{ route('medicines.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-teal-700 text-white rounded-md text-sm">Add Medicine</a>
                 @endif
             </div>
@@ -25,6 +25,32 @@
                 Color coding as of <strong>{{ now()->format('F Y') }}</strong>:
                 light yellow = expires next month · light red = expires this month · dark red = already expired.
             </p>
+
+            <form method="GET" action="{{ route('medicines.index') }}" class="js-live-search bg-white shadow-sm rounded-lg p-3 sm:p-4 border border-slate-200">
+                @if ($archived)
+                    <input type="hidden" name="archived" value="1">
+                @endif
+                <label for="inventory-search" class="block text-sm font-medium text-slate-700 mb-1">Search inventory</label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input
+                        id="inventory-search"
+                        type="search"
+                        name="q"
+                        value="{{ $q }}"
+                        placeholder="Generic name, brand, strength, or remarks…"
+                        class="block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-600 focus:ring-teal-600 text-sm"
+                        autocomplete="off"
+                    >
+                    @if ($q !== '')
+                        <a
+                            href="{{ route('medicines.index', $archived ? ['archived' => 1] : []) }}"
+                            class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700 whitespace-nowrap"
+                        >
+                            Clear
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             <div class="space-y-3 sm:hidden">
                 @forelse ($medicines as $medicine)

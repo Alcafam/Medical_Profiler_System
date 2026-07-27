@@ -250,10 +250,16 @@
 
 .inventory-row-expired {
     background-color: #b91c1c; /* red-700 dark red */
-    transition: background-color 0.15s ease;
+    color: #ffffff;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 .group:hover .inventory-row-expired,
 .inventory-row-expired:hover {
     background-color: #991b1b; /* red-800 */
+    color: #ffffff;
+}
+.inventory-row-expired a,
+.inventory-row-expired button {
+    color: #ffffff !important;
 }
 

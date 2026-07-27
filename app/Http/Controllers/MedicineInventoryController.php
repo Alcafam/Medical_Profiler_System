@@ -14,16 +14,27 @@ class MedicineInventoryController extends Controller
         abort_unless($request->user()->canManageInventory(), 403);
 
         $archived = $request->boolean('archived');
+        $q = trim((string) $request->input('q', ''));
 
         $medicines = Medicine::query()
-            ->when($archived, fn ($q) => $q->archived(), fn ($q) => $q->active())
+            ->when($archived, fn ($query) => $query->archived(), fn ($query) => $query->active())
+            ->when($q !== '', function ($query) use ($q) {
+                $like = '%'.$q.'%';
+
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('generic_name', 'like', $like)
+                        ->orWhere('brand_name', 'like', $like)
+                        ->orWhere('dosage_strength', 'like', $like)
+                        ->orWhere('remarks', 'like', $like);
+                });
+            })
             ->orderBy('generic_name')
             ->orderBy('brand_name')
             ->orderBy('dosage_strength')
             ->paginate(30)
             ->withQueryString();
 
-        return view('medicines.index', compact('medicines', 'archived'));
+        return view('medicines.index', compact('medicines', 'archived', 'q'));
     }
 
     public function create(Request $request): View
