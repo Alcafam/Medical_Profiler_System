@@ -22,12 +22,13 @@
             @endif
 
             <p class="text-xs text-slate-500 mb-0">
-                Row colors: light yellow = expires next month · light red = expires this month · dark red = already expired.
+                Color coding as of <strong>{{ now()->format('F Y') }}</strong>:
+                light yellow = expires next month · light red = expires this month · dark red = already expired.
             </p>
 
             <div class="space-y-3 sm:hidden">
                 @forelse ($medicines as $medicine)
-                    <article @class(['shadow-sm rounded-lg p-4 space-y-2', $medicine->expiryRowClass() ?: 'bg-white'])>
+                    <article @class(['shadow-sm rounded-lg p-4 space-y-2 text-slate-800', $medicine->expiryRowClass()])>
                         <h3 class="font-semibold break-words">{{ $medicine->generic_name }}</h3>
                         <p class="text-sm mb-0">{{ $medicine->brand_name }} · {{ $medicine->dosage_strength ?: '—' }}</p>
                         <p class="text-sm mb-0">Exp: {{ $medicine->expirationLabel() }}</p>
@@ -59,43 +60,55 @@
             </div>
 
             <div class="hidden sm:block bg-white shadow-sm rounded-lg overflow-x-auto">
-                <table class="min-w-full text-sm divide-y divide-slate-200 table-fixed">
+                <table class="w-full text-sm divide-y divide-slate-200" style="table-layout: fixed;">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col style="width: 12%;">
+                        <col style="width: 12%;">
+                        <col style="width: 10%;">
+                        <col style="width: 8%;">
+                        <col style="width: 9%;">
+                        <col style="width: 9%;">
+                        <col style="width: 15%;">
+                        <col style="width: 10%;">
+                    </colgroup>
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-3 py-3 text-left w-[15%]">Generic Name</th>
+                            <th class="px-3 py-3 text-left">Generic Name</th>
                             <th class="px-3 py-3 text-left">Brand Name</th>
                             <th class="px-3 py-3 text-left">Dosage Strength</th>
                             <th class="px-3 py-3 text-left">Expiration Date</th>
                             <th class="px-3 py-3 text-right">Quantity</th>
                             <th class="px-3 py-3 text-right">QTY Dispensed</th>
                             <th class="px-3 py-3 text-right">QTY Remaining</th>
-                            <th class="px-3 py-3 text-left w-[15%]">Remarks</th>
+                            <th class="px-3 py-3 text-left">Remarks</th>
                             <th class="px-3 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($medicines as $medicine)
-                            <tr @class([$medicine->expiryRowClass()])>
-                                <td class="px-3 py-3 w-[15%] whitespace-normal break-words">{{ $medicine->generic_name }}</td>
-                                <td class="px-3 py-3">{{ $medicine->brand_name }}</td>
-                                <td class="px-3 py-3">{{ $medicine->dosage_strength ?: '—' }}</td>
-                                <td class="px-3 py-3 whitespace-nowrap">{{ $medicine->expirationLabel() }}</td>
-                                <td class="px-3 py-3 text-right">{{ number_format($medicine->quantity) }}</td>
-                                <td class="px-3 py-3 text-right">{{ number_format($medicine->quantity_dispensed) }}</td>
-                                <td class="px-3 py-3 text-right font-medium">{{ number_format($medicine->quantityRemaining()) }}</td>
-                                <td class="px-3 py-3 w-[15%] whitespace-normal break-words">{{ $medicine->remarks ?: '—' }}</td>
-                                <td class="px-3 py-3 text-right space-x-2 whitespace-nowrap">
-                                    <a href="{{ route('medicines.edit', $medicine) }}" class="underline">Edit</a>
+                            @php $rowBg = $medicine->expiryRowClass(); @endphp
+                            <tr class="group">
+                                <td class="px-3 py-3 break-words whitespace-normal align-top text-slate-800 {{ $rowBg }}">{{ $medicine->generic_name }}</td>
+                                <td class="px-3 py-3 break-words whitespace-normal align-top text-slate-800 {{ $rowBg }}">{{ $medicine->brand_name }}</td>
+                                <td class="px-3 py-3 break-words whitespace-normal align-top text-slate-800 {{ $rowBg }}">{{ $medicine->dosage_strength ?: '—' }}</td>
+                                <td class="px-3 py-3 whitespace-nowrap align-top text-slate-800 {{ $rowBg }}">{{ $medicine->expirationLabel() }}</td>
+                                <td class="px-3 py-3 text-right align-top text-slate-800 {{ $rowBg }}">{{ number_format($medicine->quantity) }}</td>
+                                <td class="px-3 py-3 text-right align-top text-slate-800 {{ $rowBg }}">{{ number_format($medicine->quantity_dispensed) }}</td>
+                                <td class="px-3 py-3 text-right font-medium align-top text-slate-800 {{ $rowBg }}">{{ number_format($medicine->quantityRemaining()) }}</td>
+                                <td class="px-3 py-3 break-words whitespace-normal align-top text-slate-800 {{ $rowBg }}">{{ $medicine->remarks ?: '—' }}</td>
+                                <td class="px-3 py-3 text-right space-x-2 whitespace-nowrap align-top text-slate-800 {{ $rowBg }}">
+                                    <a href="{{ route('medicines.edit', $medicine) }}" class="underline text-teal-800">Edit</a>
                                     @if ($archived)
                                         <form action="{{ route('medicines.restore', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Restore this medicine?')">
                                             @csrf
-                                            <button class="underline">Restore</button>
+                                            <button class="underline text-teal-800">Restore</button>
                                         </form>
                                     @else
                                         <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Archive this medicine?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="underline">Archive</button>
+                                            <button class="underline text-rose-700">Archive</button>
                                         </form>
                                     @endif
                                 </td>

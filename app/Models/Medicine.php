@@ -99,10 +99,10 @@ class Medicine extends Model
     public function expiryRowClass(): string
     {
         return match ($this->expiryStatus()) {
-            'expired' => 'bg-red-800 text-white',
-            'current' => 'bg-red-100 text-red-950',
-            'soon' => 'bg-amber-100 text-amber-950',
-            default => '',
+            'expired' => 'inventory-row-expired',
+            'current' => 'inventory-row-current',
+            'soon' => 'inventory-row-soon',
+            default => 'inventory-row-ok',
         };
     }
 

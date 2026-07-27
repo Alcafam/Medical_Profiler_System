@@ -219,3 +219,41 @@
 .encoder-clients-table tbody tr[class*='bg-teal-50'] td:last-child {
     background: #f0fdfa;
 }
+
+/* Medicine inventory expiry row colors + hover */
+.inventory-row-ok {
+    background-color: #ffffff;
+    transition: background-color 0.15s ease;
+}
+.group:hover .inventory-row-ok,
+.inventory-row-ok:hover {
+    background-color: #f1f5f9; /* slate-100 */
+}
+
+.inventory-row-soon {
+    background-color: #fef3c7; /* amber-100 */
+    transition: background-color 0.15s ease;
+}
+.group:hover .inventory-row-soon,
+.inventory-row-soon:hover {
+    background-color: #fde68a; /* amber-200 */
+}
+
+.inventory-row-current {
+    background-color: #fee2e2; /* red-100 */
+    transition: background-color 0.15s ease;
+}
+.group:hover .inventory-row-current,
+.inventory-row-current:hover {
+    background-color: #fecaca; /* red-200 */
+}
+
+.inventory-row-expired {
+    background-color: #b91c1c; /* red-700 dark red */
+    transition: background-color 0.15s ease;
+}
+.group:hover .inventory-row-expired,
+.inventory-row-expired:hover {
+    background-color: #991b1b; /* red-800 */
+}
+
