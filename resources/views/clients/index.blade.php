@@ -228,12 +228,17 @@
                                                 <td class="px-4 py-3 text-nowrap">{{ $map->get('height_cm')?->value ?: '—' }}</td>
                                                 <td class="px-4 py-3 text-nowrap">{{ $map->get('weight_kg')?->value ?: '—' }}</td>
                                                 <td class="px-4 py-3 text-nowrap">{{ $client->bmi() ?? '—' }}</td>
-                                                <td class="px-4 py-3 text-nowrap">{{ $client->bmiCategory() ?? '—' }}</td>
+                                                <x-bmi-category
+                                                    :category="$client->bmiCategory()"
+                                                    as="td"
+                                                    class="px-4 py-3 text-nowrap"
+                                                />
                                                 <td class="px-4 py-3 text-nowrap">{{ $client->bloodPressure() ?? '—' }}</td>
-                                                <td @class([
-                                                    'px-4 py-3 text-nowrap',
-                                                    'text-rose-600 font-semibold' => $bpCategory === 'Hypertensive Crisis',
-                                                ])>{{ $bpCategory ?? '—' }}</td>
+                                                <x-bp-category
+                                                    :category="$bpCategory"
+                                                    as="td"
+                                                    class="px-4 py-3 text-nowrap"
+                                                />
                                                 <td class="px-4 py-3 text-end text-nowrap" @click.stop>
                                                     <a href="{{ route('clients.encode', $client) }}" class="text-teal-700 hover:underline font-medium">Encode</a>
                                                 </td>
@@ -328,7 +333,11 @@
                                         </div>
                                         <div>
                                             <dt class="text-xs uppercase tracking-wide text-slate-400">BMI Category</dt>
-                                            <dd class="text-slate-700">{{ $client->bmiCategory() ?? '—' }}</dd>
+                                            <x-bmi-category
+                                                :category="$client->bmiCategory()"
+                                                as="dd"
+                                                class="px-2 py-0.5 rounded inline-block"
+                                            />
                                         </div>
                                     @endif
                                     @if ($slug === 'diastolic')
@@ -338,10 +347,11 @@
                                         </div>
                                         <div>
                                             <dt class="text-xs uppercase tracking-wide text-slate-400">BP Category</dt>
-                                            <dd @class([
-                                                'text-slate-700',
-                                                'text-rose-600 font-semibold' => $client->bpCategory() === 'Hypertensive Crisis',
-                                            ])>{{ $client->bpCategory() ?? '—' }}</dd>
+                                            <x-bp-category
+                                                :category="$client->bpCategory()"
+                                                as="dd"
+                                                class="px-2 py-0.5 rounded inline-block"
+                                            />
                                         </div>
                                     @endif
                                 @endforeach
@@ -386,14 +396,19 @@
                                         ])>{{ $map->get($slug)?->value ?: '—' }}</td>
                                         @if ($slug === 'weight_kg')
                                             <td class="px-4 py-3 whitespace-nowrap">{{ $client->bmi() ?? '—' }}</td>
-                                            <td class="px-4 py-3 whitespace-nowrap">{{ $client->bmiCategory() ?? '—' }}</td>
+                                            <x-bmi-category
+                                                :category="$client->bmiCategory()"
+                                                as="td"
+                                                class="px-4 py-3 whitespace-nowrap"
+                                            />
                                         @endif
                                         @if ($slug === 'diastolic')
                                             <td class="px-4 py-3 whitespace-nowrap">{{ $client->bloodPressure() ?? '—' }}</td>
-                                            <td @class([
-                                                'px-4 py-3 whitespace-nowrap',
-                                                'text-rose-600 font-semibold' => $client->bpCategory() === 'Hypertensive Crisis',
-                                            ])>{{ $client->bpCategory() ?? '—' }}</td>
+                                            <x-bp-category
+                                                :category="$client->bpCategory()"
+                                                as="td"
+                                                class="px-4 py-3 whitespace-nowrap"
+                                            />
                                         @endif
                                     @endforeach
                                     <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap sticky right-0 bg-white z-10">

@@ -228,6 +228,16 @@ class FormFieldSeeder extends Seeder
                 'is_searchable' => false,
                 'sort_order' => 5,
             ],
+            [
+                'slug' => 'patient_condition',
+                'label' => 'Patient Condition',
+                'type' => FieldType::Select,
+                'options' => ['Improved', 'Un-improved', 'Recovered'],
+                'station_id' => $consultation?->id,
+                'is_required' => false,
+                'is_searchable' => false,
+                'sort_order' => 6,
+            ],
         ];
 
         $activeSlugs = [];

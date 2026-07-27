@@ -51,4 +51,9 @@ enum UserRole: string
     {
         return $this === self::SuperAdmin;
     }
+
+    public function canManageInventory(): bool
+    {
+        return in_array($this, [self::SuperAdmin, self::Admin], true);
+    }
 }

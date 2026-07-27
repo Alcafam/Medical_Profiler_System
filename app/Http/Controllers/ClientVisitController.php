@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\FormField;
+use App\Models\Medicine;
 use App\Models\Station;
 use App\Models\Visit;
 use App\Services\ClientFieldValueService;
@@ -18,7 +19,12 @@ class ClientVisitController extends Controller
     public function show(Client $client): View
     {
         $client->load([
-            'visits' => fn ($q) => $q->with(['creator:id,name', 'fieldValues.formField'])->orderByDesc('visited_at')->orderByDesc('id'),
+            'visits' => fn ($q) => $q->with([
+                'creator:id,name',
+                'fieldValues.formField',
+                'medicineRecommendations.medicine',
+                'medicineDispenses.medicine',
+            ])->orderByDesc('visited_at')->orderByDesc('id'),
             'latestVisit.fieldValues.formField',
         ]);
 
@@ -30,13 +36,19 @@ class ClientVisitController extends Controller
         $visit = $visits->createForClient($client, $request->user(), copyIdentityFromLatest: true);
 
         return redirect()
-            ->route('clients.visits.encode', [$client, $visit])
+            ->route('clients.visits.encode', [
+                'client' => $client,
+                'visit' => $visit,
+                ...$request->user()->encodeStationQuery(),
+            ])
             ->with('status', 'New visit created. Identity fields copied from the previous visit.');
     }
 
     public function encode(Request $request, Client $client, Visit $visit): View
     {
         abort_unless($visit->client_id === $client->id, 404);
+
+        $user = $request->user();
 
         $stations = Station::query()
             ->where('is_active', true)
@@ -50,10 +62,22 @@ class ClientVisitController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $visit->load(['fieldValues.editor', 'fieldValues.formField', 'client']);
+        $visit->load([
+            'fieldValues.editor',
+            'fieldValues.formField',
+            'client',
+            'medicineRecommendations.medicine',
+            'medicineRecommendations.recommender:id,name',
+            'medicineDispenses.medicine',
+            'medicineDispenses.dispenser:id,name',
+        ]);
 
         $historyVisits = $client->visits()
-            ->with(['fieldValues.formField'])
+            ->with([
+                'fieldValues.formField',
+                'medicineRecommendations.medicine',
+                'medicineDispenses.medicine',
+            ])
             ->orderByDesc('visited_at')
             ->orderByDesc('id')
             ->get();
@@ -80,6 +104,7 @@ class ClientVisitController extends Controller
             'current_medications',
             'allergies',
             'notes',
+            'patient_condition',
         ];
 
         $previewLabels = [
@@ -104,9 +129,46 @@ class ClientVisitController extends Controller
             'current_medications' => 'Current Medications',
             'allergies' => 'Allergies',
             'notes' => 'Notes',
+            'patient_condition' => 'Patient Condition',
         ];
 
-        $activeStationId = $request->integer('station') ?: $stations->first()?->id;
+        $defaultStationId = $user->isEncoder() && $user->station_id
+            ? (int) $user->station_id
+            : $stations->first()?->id;
+
+        $activeStationId = $request->integer('station') ?: $defaultStationId;
+
+        $medicineOptions = Medicine::query()
+            ->active()
+            ->orderBy('generic_name')
+            ->orderBy('brand_name')
+            ->get()
+            ->map(fn (Medicine $medicine) => $medicine->toPickerArray())
+            ->values()
+            ->all();
+
+        $recommendedMedicines = $visit->medicineRecommendations->map(fn ($row) => [
+            'id' => $row->id,
+            'medicine_id' => $row->medicine_id,
+            'label' => $row->medicine?->displayLabel(),
+            'quantity' => $row->quantity,
+            'instructions' => $row->instructions,
+            'by' => $row->recommender?->name,
+            'expiration_label' => $row->medicine?->expirationLabel(),
+            'expiry_status' => $row->medicine?->expiryStatus(),
+        ])->values()->all();
+
+        $dispensedMedicines = $visit->medicineDispenses->map(fn ($row) => [
+            'id' => $row->id,
+            'medicine_id' => $row->medicine_id,
+            'label' => $row->medicine?->displayLabel(),
+            'quantity' => $row->quantity,
+            'remarks' => $row->remarks,
+            'by' => $row->dispenser?->name,
+            'expiration_label' => $row->medicine?->expirationLabel(),
+            'expiry_status' => $row->medicine?->expiryStatus(),
+            'quantity_remaining' => $row->medicine?->quantityRemaining(),
+        ])->values()->all();
 
         return view('clients.encode', [
             'client' => $client,
@@ -118,6 +180,38 @@ class ClientVisitController extends Controller
             'unassigned' => $unassigned,
             'activeStationId' => $activeStationId,
             'values' => $visit->fieldValues->keyBy('form_field_id'),
+            'medicineOptions' => $medicineOptions,
+            'recommendedMedicines' => $recommendedMedicines,
+            'dispensedMedicines' => $dispensedMedicines,
+        ]);
+    }
+
+    public function updateConsultationQueue(Request $request, Client $client, Visit $visit): JsonResponse
+    {
+        abort_unless($visit->client_id === $client->id, 404);
+
+        $data = $request->validate([
+            'queued' => ['required', 'boolean'],
+        ]);
+
+        if ($request->boolean('queued')) {
+            $visit->queueForConsultation();
+        } else {
+            if (! $visit->removeFromConsultationQueue()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot remove from queue after a completed disposition.',
+                ], 422);
+            }
+        }
+
+        $visit->refresh();
+
+        return response()->json([
+            'status' => 'saved',
+            'queued' => $visit->isQueuedForConsultation(),
+            'disposition' => $visit->disposition?->value,
+            'queued_at' => optional($visit->queued_for_consultation_at)?->toDateTimeString(),
         ]);
     }
 

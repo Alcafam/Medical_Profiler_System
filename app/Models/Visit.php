@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\VisitDisposition;
 use App\Support\BmiCalculator;
 use App\Support\BpCategoryCalculator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,12 +26,18 @@ class Visit extends Model
         'visited_at',
         'created_by',
         'notes',
+        'queued_for_consultation_at',
+        'disposition',
+        'disposition_at',
     ];
 
     protected function casts(): array
     {
         return [
             'visited_at' => 'datetime',
+            'queued_for_consultation_at' => 'datetime',
+            'disposition_at' => 'datetime',
+            'disposition' => VisitDisposition::class,
         ];
     }
 
@@ -46,6 +54,102 @@ class Visit extends Model
     public function fieldValues(): HasMany
     {
         return $this->hasMany(ClientFieldValue::class);
+    }
+
+    public function medicineRecommendations(): HasMany
+    {
+        return $this->hasMany(VisitMedicineRecommendation::class);
+    }
+
+    public function medicineDispenses(): HasMany
+    {
+        return $this->hasMany(VisitMedicineDispense::class);
+    }
+
+    public function scopeQueuedForConsultation(Builder $query): Builder
+    {
+        return $query->whereNotNull('queued_for_consultation_at');
+    }
+
+    public function scopeConsultationActive(Builder $query): Builder
+    {
+        return $query->queuedForConsultation()
+            ->where('disposition', VisitDisposition::Active);
+    }
+
+    public function scopeConsultationCompleted(Builder $query): Builder
+    {
+        return $query->queuedForConsultation()
+            ->whereIn(
+                'disposition',
+                array_map(fn (VisitDisposition $case) => $case->value, VisitDisposition::completedCases())
+            );
+    }
+
+    public function isQueuedForConsultation(): bool
+    {
+        return $this->queued_for_consultation_at !== null;
+    }
+
+    public function queueForConsultation(): void
+    {
+        $this->forceFill([
+            'queued_for_consultation_at' => $this->queued_for_consultation_at ?? now(),
+            'disposition' => VisitDisposition::Active,
+            'disposition_at' => now(),
+        ])->save();
+    }
+
+    public function removeFromConsultationQueue(): bool
+    {
+        if ($this->disposition !== null && $this->disposition !== VisitDisposition::Active) {
+            return false;
+        }
+
+        $this->forceFill([
+            'queued_for_consultation_at' => null,
+            'disposition' => null,
+            'disposition_at' => null,
+        ])->save();
+
+        return true;
+    }
+
+    public function setDisposition(VisitDisposition $disposition): void
+    {
+        $this->forceFill([
+            'disposition' => $disposition,
+            'disposition_at' => now(),
+        ])->save();
+    }
+
+    public function waitingMinutes(): int
+    {
+        if ($this->queued_for_consultation_at === null) {
+            return 0;
+        }
+
+        $end = $this->disposition === VisitDisposition::Active || $this->disposition === null
+            ? now()
+            : ($this->disposition_at ?? now());
+
+        return max(0, (int) $this->queued_for_consultation_at->diffInMinutes($end));
+    }
+
+    public function waitingLabel(): string
+    {
+        $minutes = $this->waitingMinutes();
+
+        if ($minutes < 60) {
+            return $minutes.' min';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remain = $minutes % 60;
+
+        return $remain === 0
+            ? "{$hours}h"
+            : "{$hours}h {$remain}m";
     }
 
     public function valueFor(FormField|int $field): ?ClientFieldValue

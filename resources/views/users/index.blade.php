@@ -28,7 +28,12 @@
                                 {{ $user->role->label() }}
                             </span>
                         </div>
-                        <p class="text-sm text-slate-600">{{ $user->is_active ? 'Active' : 'Inactive' }}</p>
+                        <p class="text-sm text-slate-600">
+                            {{ $user->is_active ? 'Active' : 'Inactive' }}
+                            @if ($user->station)
+                                · {{ $user->station->name }}
+                            @endif
+                        </p>
                         <div class="flex gap-3 text-sm pt-1">
                             <a href="{{ route('users.edit', $user) }}" class="text-teal-700 hover:underline">Edit</a>
                             <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Delete this user?')">
@@ -48,6 +53,7 @@
                             <th class="px-4 py-3 text-left whitespace-nowrap">Name</th>
                             <th class="px-4 py-3 text-left whitespace-nowrap">Email</th>
                             <th class="px-4 py-3 text-left whitespace-nowrap">Role</th>
+                            <th class="px-4 py-3 text-left whitespace-nowrap">Station</th>
                             <th class="px-4 py-3 text-left whitespace-nowrap">Status</th>
                             <th class="px-4 py-3 text-right whitespace-nowrap">Actions</th>
                         </tr>
@@ -58,6 +64,7 @@
                                 <td class="px-4 py-3 whitespace-nowrap">{{ $user->name }}</td>
                                 <td class="px-4 py-3 break-all">{{ $user->email }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ $user->role->label() }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ $user->station?->name ?? '—' }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ $user->is_active ? 'Active' : 'Inactive' }}</td>
                                 <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                                     <a href="{{ route('users.edit', $user) }}" class="text-teal-700 hover:underline">Edit</a>

@@ -25,4 +25,9 @@ class Station extends Model
     {
         return $this->hasMany(FormField::class)->orderBy('sort_order');
     }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
 }

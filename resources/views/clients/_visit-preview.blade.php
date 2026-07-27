@@ -21,6 +21,7 @@
         'current_medications' => 'Current Medications',
         'allergies' => 'Allergies',
         'notes' => 'Notes',
+        'patient_condition' => 'Patient Condition',
     ];
 
     $previewSlugs = $previewSlugs ?? [
@@ -45,6 +46,7 @@
         'current_medications',
         'allergies',
         'notes',
+        'patient_condition',
     ];
 
     $hiddenSlugs = ['first_name', 'last_name', 'client_type', 'department'];
@@ -83,12 +85,13 @@
     $bmiCategory = $visit->bmiCategory();
     $bloodPressure = $visit->bloodPressure();
     $bpCategory = $visit->bpCategory();
+    $liveSync = (bool) ($liveSync ?? false);
 @endphp
 
-<div class="space-y-3">
+<div @class(['space-y-3', 'js-current-visit-preview' => $liveSync])>
     <div class="min-w-0 border-b border-slate-100 pb-3">
         <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Preview</p>
-        <h3 class="mt-0 font-semibold text-slate-900 break-words text-base">{{ $fullName }}</h3>
+        <h3 class="mt-0 font-semibold text-slate-900 break-words text-base js-preview-full-name">{{ $fullName }}</h3>
         @isset($client)
             <p class="mt-1 font-mono text-xs text-slate-500 break-all mb-0">{{ $client->system_id }}</p>
         @endisset
@@ -100,14 +103,14 @@
     <dl class="space-y-2 text-sm mb-0">
         <div class="d-flex gap-2">
             <dt class="text-slate-500 shrink-0 mb-0">Name:</dt>
-            <dd class="text-slate-800 break-words mb-0">{{ $fullName }}</dd>
+            <dd class="text-slate-800 break-words mb-0 js-preview-full-name">{{ $fullName }}</dd>
         </div>
 
         @foreach ($displaySlugs as $slug)
             <div>
                 <div class="d-flex gap-2">
                     <dt class="text-slate-500 shrink-0 mb-0">{{ $previewLabels[$slug] ?? $slug }}:</dt>
-                    <dd class="text-slate-800 break-words mb-0">
+                    <dd class="text-slate-800 break-words mb-0" data-preview-slug="{{ $slug }}">
                         @if ($slug === 'date_of_birth')
                             {{ $dobDisplay }}
                         @else
@@ -120,7 +123,7 @@
                     <div class="mt-2 space-y-2">
                         <div class="d-flex gap-2">
                             <dt class="text-slate-500 shrink-0 mb-0">BMI:</dt>
-                            <dd class="text-slate-800 mb-0">
+                            <dd class="text-slate-800 mb-0 js-preview-bmi">
                                 {{ ($bmi ?? '—').' ('.($bmiCategory ?? '—').')' }}
                             </dd>
                         </div>
@@ -132,11 +135,9 @@
                     <div class="mt-2 space-y-2">
                         <div class="d-flex gap-2">
                             <dt class="text-slate-500 shrink-0 mb-0">Blood Pressure (mmHg):</dt>
-                            <dd @class([
-                                'mb-0',
-                                'text-rose-600 font-semibold' => $bpCategory === 'Hypertensive Crisis',
-                                'text-slate-800' => $bpCategory !== 'Hypertensive Crisis',
-                            ])>
+                            <dd
+                                class="mb-0 js-preview-bp {{ $bpCategory === 'Hypertensive Crisis' ? 'text-rose-600 font-semibold' : 'text-slate-800' }}"
+                            >
                                 {{ ($bloodPressure ?? '—').' ('.($bpCategory ?? '—').')' }}
                             </dd>
                         </div>
@@ -149,5 +150,35 @@
                 @endif
             </div>
         @endforeach
+
+        @if ($visit->relationLoaded('medicineRecommendations') && $visit->medicineRecommendations->isNotEmpty())
+            <div class="pt-2 border-t border-slate-100">
+                <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Recommended medicines</p>
+                <ul class="mb-0 ps-3 text-sm text-slate-800">
+                    @foreach ($visit->medicineRecommendations as $rec)
+                        <li>
+                            {{ $rec->medicine?->displayLabel() ?? 'Medicine' }}
+                            @if ($rec->quantity) — qty {{ $rec->quantity }} @endif
+                            @if ($rec->instructions) ({{ $rec->instructions }}) @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if ($visit->relationLoaded('medicineDispenses') && $visit->medicineDispenses->isNotEmpty())
+            <div class="pt-2 border-t border-slate-100">
+                <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Dispensed medicines</p>
+                <ul class="mb-0 ps-3 text-sm text-slate-800">
+                    @foreach ($visit->medicineDispenses as $dispense)
+                        <li>
+                            {{ $dispense->medicine?->displayLabel() ?? 'Medicine' }}
+                            — qty {{ $dispense->quantity }}
+                            @if ($dispense->remarks) ({{ $dispense->remarks }}) @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </dl>
 </div>

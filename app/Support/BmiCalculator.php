@@ -40,4 +40,19 @@ class BmiCalculator
             default => 'Obese II',
         };
     }
+
+    /**
+     * Background classes for BMI category badges/cells.
+     */
+    public static function categoryBackgroundClass(?string $category): string
+    {
+        return match ($category) {
+            'Underweight' => 'bmi-cat-underweight',
+            'Normal' => 'bmi-cat-normal',
+            'Overweight' => 'bmi-cat-overweight',
+            'Obese I' => 'bmi-cat-obese-i',
+            'Obese II' => 'bmi-cat-obese-ii',
+            default => 'bmi-cat-empty',
+        };
+    }
 }

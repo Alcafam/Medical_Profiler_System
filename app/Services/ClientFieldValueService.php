@@ -73,7 +73,7 @@ class ClientFieldValueService
 
     public function assertCanEdit(User $user, FormField $field): void
     {
-        if ($user->canUseGrid() || $user->isSuperAdmin() || $user->isAdmin() || $user->isEncoder()) {
+        if ($user->canEditField($field)) {
             return;
         }
 

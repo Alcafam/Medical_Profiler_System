@@ -62,6 +62,12 @@
     width: 100%;
 }
 
+/* Exact 50 / 50 columns for encode page */
+.col-50 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
 @media (min-width: 992px) {
     .col-30 {
         width: 30%;
@@ -70,6 +76,82 @@
     .col-70 {
         width: 70%;
     }
+
+    .col-50 {
+        width: 50%;
+    }
+}
+
+.encode-layout-shell > .row {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+}
+
+.encode-layout-shell .col-30,
+.encode-layout-shell .col-70 {
+    min-width: 0;
+}
+
+/* BMI category color coding */
+.bmi-cat-underweight {
+    background-color: #e0f2fe; /* light blue */
+    color: #0c4a6e;
+}
+
+.bmi-cat-normal {
+    background-color: #d1fae5; /* light green */
+    color: #065f46;
+}
+
+.bmi-cat-overweight {
+    background-color: #fef9c3; /* light yellow */
+    color: #854d0e;
+}
+
+.bmi-cat-obese-i {
+    background-color: #ffedd5; /* light orange */
+    color: #9a3412;
+}
+
+.bmi-cat-obese-ii {
+    background-color: #fee2e2; /* light red */
+    color: #991b1b;
+}
+
+.bmi-cat-empty {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* BP category color coding */
+.bp-cat-normal {
+    background-color: #d1fae5; /* light green */
+    color: #065f46;
+}
+
+.bp-cat-elevated {
+    background-color: #fef9c3; /* light yellow */
+    color: #854d0e;
+}
+
+.bp-cat-stage-1 {
+    background-color: #ffedd5; /* light orange */
+    color: #9a3412;
+}
+
+.bp-cat-stage-2 {
+    background-color: #fee2e2; /* light red */
+    color: #991b1b;
+}
+
+.bp-cat-crisis {
+    background-color: #7f1d1d; /* dark red */
+    color: #fef2f2;
+}
+
+.bp-cat-empty {
+    background-color: transparent;
+    color: inherit;
 }
 
 .encoder-clients-shell {

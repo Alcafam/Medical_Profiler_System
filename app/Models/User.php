@@ -7,10 +7,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'is_active', 'station_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -25,6 +26,11 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'is_active' => 'boolean',
         ];
+    }
+
+    public function station(): BelongsTo
+    {
+        return $this->belongsTo(Station::class);
     }
 
     public function isSuperAdmin(): bool
@@ -75,5 +81,40 @@ class User extends Authenticatable
     public function canBulkCreateVisits(): bool
     {
         return $this->role->canBulkCreateVisits();
+    }
+
+    public function canManageInventory(): bool
+    {
+        return $this->role->canManageInventory();
+    }
+
+    /**
+     * Encoders and admins may edit any active field.
+     */
+    public function canEditField(FormField $field): bool
+    {
+        return $this->isSuperAdmin() || $this->isAdmin() || $this->isEncoder();
+    }
+
+    /**
+     * Query params to open the encode page on this user's default station.
+     *
+     * @return array{station?: int, view?: int}
+     */
+    public function encodeStationQuery(): array
+    {
+        if ($this->isEncoder() && $this->station_id) {
+            return [
+                'station' => (int) $this->station_id,
+                'view' => (int) $this->station_id,
+            ];
+        }
+
+        return [];
+    }
+
+    public function isConsultationEncoder(): bool
+    {
+        return $this->isEncoder() && $this->station?->name === 'Consultation';
     }
 }

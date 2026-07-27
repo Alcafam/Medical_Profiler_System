@@ -5,10 +5,13 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientExportController;
 use App\Http\Controllers\ClientGridController;
 use App\Http\Controllers\ClientVisitController;
+use App\Http\Controllers\ConsultationQueueController;
 use App\Http\Controllers\FormFieldController;
+use App\Http\Controllers\MedicineInventoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\VisitMedicineController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -27,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/grid', [ClientGridController::class, 'index'])->name('clients.grid');
         Route::patch('/grid/{client}/fields/{field}', [ClientGridController::class, 'saveCell'])
             ->name('clients.grid.save');
+
+        Route::resource('medicines', MedicineInventoryController::class)->except(['show']);
+        Route::post('/medicines/{medicine}/restore', [MedicineInventoryController::class, 'restore'])
+            ->name('medicines.restore');
     });
 
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
@@ -37,6 +44,19 @@ Route::middleware(['auth'])->group(function () {
         ->name('clients.visits.encode');
     Route::patch('/clients/{client}/visits/{visit}/fields/{field}', [ClientVisitController::class, 'saveField'])
         ->name('clients.visits.fields.save');
+    Route::patch('/clients/{client}/visits/{visit}/consultation-queue', [ClientVisitController::class, 'updateConsultationQueue'])
+        ->name('clients.visits.consultation-queue');
+    Route::patch('/clients/{client}/visits/{visit}/disposition', [ConsultationQueueController::class, 'updateDisposition'])
+        ->name('clients.visits.disposition');
+
+    Route::post('/clients/{client}/visits/{visit}/medicine-recommendations', [VisitMedicineController::class, 'storeRecommendation'])
+        ->name('clients.visits.medicine-recommendations.store');
+    Route::delete('/clients/{client}/visits/{visit}/medicine-recommendations/{recommendation}', [VisitMedicineController::class, 'destroyRecommendation'])
+        ->name('clients.visits.medicine-recommendations.destroy');
+    Route::post('/clients/{client}/visits/{visit}/medicine-dispenses', [VisitMedicineController::class, 'storeDispense'])
+        ->name('clients.visits.medicine-dispenses.store');
+    Route::delete('/clients/{client}/visits/{visit}/medicine-dispenses/{dispense}', [VisitMedicineController::class, 'destroyDispense'])
+        ->name('clients.visits.medicine-dispenses.destroy');
 
     Route::middleware('role:super_admin')->group(function () {
         Route::post('/clients/bulk-visits', [BulkVisitController::class, 'store'])

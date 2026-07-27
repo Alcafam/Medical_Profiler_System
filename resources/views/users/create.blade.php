@@ -5,7 +5,12 @@
 
     <div class="py-6 sm:py-8">
         <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('users.store') }}" class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6 space-y-4">
+            <form
+                method="POST"
+                action="{{ route('users.store') }}"
+                class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6 space-y-4"
+                x-data="{ role: '{{ old('role', \App\Enums\UserRole::Encoder->value) }}' }"
+            >
                 @csrf
                 <div>
                     <x-input-label for="name" value="Name" />
@@ -19,11 +24,35 @@
                 </div>
                 <div>
                     <x-input-label for="role" value="Role" />
-                    <select id="role" name="role" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-600 focus:ring-teal-600" required>
+                    <select
+                        id="role"
+                        name="role"
+                        x-model="role"
+                        class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-600 focus:ring-teal-600"
+                        required
+                    >
                         @foreach ($roles as $role)
                             <option value="{{ $role->value }}" @selected(old('role') === $role->value)>{{ $role->label() }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div x-show="role === '{{ \App\Enums\UserRole::Encoder->value }}'" x-cloak>
+                    <x-input-label for="station_id" value="Working Station" />
+                    <select
+                        id="station_id"
+                        name="station_id"
+                        class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-600 focus:ring-teal-600"
+                        :required="role === '{{ \App\Enums\UserRole::Encoder->value }}'"
+                    >
+                        <option value="">Select station</option>
+                        @foreach ($stations as $station)
+                            <option value="{{ $station->id }}" @selected((string) old('station_id') === (string) $station->id)>
+                                {{ $station->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-input-error :messages="$errors->get('station_id')" class="mt-2" />
+                    <p class="mt-1 text-xs text-slate-500">Used as the default station when this encoder opens Encode.</p>
                 </div>
                 <div>
                     <x-input-label for="password" value="Password" />

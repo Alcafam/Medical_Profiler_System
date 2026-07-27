@@ -14,6 +14,13 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
+        $user = $request->user();
+        $user->loadMissing('station');
+
+        if ($user->isConsultationEncoder()) {
+            return app(ConsultationQueueController::class)->index($request);
+        }
+
         $query = Client::query()->with([
             'latestVisit.fieldValues.formField',
             'latestVisit.fieldValues.editor',
@@ -137,15 +144,24 @@ class ClientController extends Controller
         $visit = $visits->createForClient($client, $request->user(), copyIdentityFromLatest: false);
 
         return redirect()
-            ->route('clients.visits.encode', [$client, $visit])
+            ->route('clients.visits.encode', [
+                'client' => $client,
+                'visit' => $visit,
+                ...$request->user()->encodeStationQuery(),
+            ])
             ->with('status', 'Client created. Begin encoding this visit.');
     }
 
     public function encodeRedirect(Client $client, VisitService $visits): RedirectResponse
     {
-        $visit = $visits->ensureLatestVisit($client, auth()->user());
+        $user = auth()->user();
+        $visit = $visits->ensureLatestVisit($client, $user);
 
-        return redirect()->route('clients.visits.encode', [$client, $visit]);
+        return redirect()->route('clients.visits.encode', [
+            'client' => $client,
+            'visit' => $visit,
+            ...$user->encodeStationQuery(),
+        ]);
     }
 
     public function destroy(Client $client): RedirectResponse

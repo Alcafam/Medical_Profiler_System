@@ -35,5 +35,6 @@
         </div>
 
         @stack('floating')
+        @stack('scripts')
     </body>
 </html>

@@ -15,10 +15,10 @@
 
     @push('floating')
         <a
-            href="{{ route('clients.show', $client) }}"
+            href="{{ route('clients.index') }}"
             class="encode-back-fab"
-            title="Back to client history"
-            aria-label="Back to client history"
+            title="Back to clients"
+            aria-label="Back to clients"
             style="position:fixed;top:1.25rem;right:1.25rem;z-index:1100;display:inline-flex;align-items:center;justify-content:center;width:3.5rem;height:3.5rem;border-radius:50%;background-color:#2563eb;color:#fff;box-shadow:0 6px 10px rgba(15,23,42,.18),0 2px 4px rgba(15,23,42,.12);text-decoration:none;"
         >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="22" height="22" aria-hidden="true">
@@ -28,178 +28,293 @@
     @endpush
 
     <div class="py-6 sm:py-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="container-fluid encode-layout-shell px-3 px-sm-4 px-lg-5">
             @if (session('status'))
-                <div class="bg-teal-50 border border-teal-200 text-teal-800 px-4 py-3 rounded text-sm">{{ session('status') }}</div>
+                <div class="bg-teal-50 border border-teal-200 text-teal-800 px-4 py-3 rounded text-sm mb-3">{{ session('status') }}</div>
             @endif
 
-            {{-- Row 1: History accordion --}}
-            <div
-                class="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden"
-                x-data="{ openId: null }"
-            >
-                <div class="px-4 py-3 border-b border-slate-100">
-                    <h3 class="text-sm font-semibold text-slate-800 mb-0">History</h3>
-                </div>
-
-                @forelse ($historyVisits as $historyVisit)
-                    <div @class(['border-b border-slate-100' => ! $loop->last])>
-                        <button
-                            type="button"
-                            class="w-100 d-flex align-items-center justify-content-between gap-3 px-4 py-3 text-start bg-transparent border-0 hover:bg-slate-50"
-                            @click="openId = openId === {{ $historyVisit->id }} ? null : {{ $historyVisit->id }}"
-                            :aria-expanded="openId === {{ $historyVisit->id }} ? 'true' : 'false'"
-                        >
-                            <span class="d-flex align-items-center flex-wrap gap-2 min-w-0">
-                                <span class="text-sm font-medium text-slate-800">
-                                    {{ $historyVisit->visited_at?->format('Y-m-d H:i') ?? '—' }}
-                                </span>
-                                @if ($visit->is($historyVisit))
-                                    <span class="text-xs uppercase tracking-wide text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">Current</span>
-                                @endif
-                            </span>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                class="w-4 h-4 text-slate-400 shrink-0 transition-transform"
-                                :class="openId === {{ $historyVisit->id }} ? 'rotate-180' : ''"
-                                aria-hidden="true"
-                            >
-                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-
-                        <div
-                            x-show="openId === {{ $historyVisit->id }}"
-                            x-cloak
-                            class="px-4 pb-4 border-t border-slate-100 bg-slate-50/50"
-                        >
-                            @include('clients._visit-preview', [
-                                'visit' => $historyVisit,
-                                'client' => $client,
-                                'previewSlugs' => $previewSlugs,
-                                'previewLabels' => $previewLabels,
-                            ])
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-4 py-6 text-sm text-slate-500 text-center">No visits yet.</div>
-                @endforelse
-            </div>
-
-            {{-- Row 2: Station tabs --}}
-            <div class="bg-white shadow-sm rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
-                    @foreach ($stations as $station)
-                        <a
-                            href="{{ route('clients.visits.encode', ['client' => $client, 'visit' => $visit, 'station' => $station->id, 'view' => $station->id]) }}"
-                            @class([
-                                'px-3 py-1.5 rounded-md text-sm border whitespace-nowrap snap-start shrink-0',
-                                'bg-teal-700 text-white border-teal-700' => (int) request('view', $activeStationId) === (int) $station->id,
-                                'bg-white text-slate-700 border-slate-300' => (int) request('view', $activeStationId) !== (int) $station->id,
-                            ])
-                        >
-                            {{ $station->name }}
-                        </a>
-                    @endforeach
-                    @if ($unassigned->isNotEmpty())
-                        <a
-                            href="{{ route('clients.visits.encode', ['client' => $client, 'visit' => $visit, 'station' => $activeStationId, 'view' => 0]) }}"
-                            @class([
-                                'px-3 py-1.5 rounded-md text-sm border whitespace-nowrap snap-start shrink-0',
-                                'bg-teal-700 text-white border-teal-700' => (int) request('view', $activeStationId) === 0,
-                                'bg-white text-slate-700 border-slate-300' => (int) request('view', $activeStationId) !== 0,
-                            ])
-                        >
-                            Unassigned
-                        </a>
-                    @endif
-                </div>
-
-                <form method="POST" action="{{ route('clients.visits.store', $client) }}">
-                    @csrf
-                    <button class="w-full sm:w-auto px-3 py-1.5 rounded-md text-sm border border-teal-700 text-teal-800 hover:bg-teal-50 whitespace-nowrap">
-                        New Visit
-                    </button>
-                </form>
-            </div>
-
-            {{-- Row 3: Encode form --}}
             @php $viewStationId = (int) request('view', $activeStationId ?: $stations->first()?->id); @endphp
 
-            @foreach ($stations as $station)
-                @if ((int) $viewStationId === (int) $station->id)
-                    <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6 space-y-5">
-                        <h3 class="text-lg font-semibold text-slate-800">{{ $station->name }}</h3>
+            <div class="row g-3 align-items-start">
+                {{-- Left: History (30%) --}}
+                <div class="col-30">
+                    <div
+                        class="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden"
+                        x-data="{ openId: {{ $visit->id }} }"
+                    >
+                        <div class="px-4 py-3 border-b border-slate-100">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-0">History</h3>
+                        </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                            @forelse ($station->formFields as $field)
-                                <div @class(['md:col-span-2' => $field->type->value === 'textarea'])>
-                                    <x-autosave-field
-                                        :field="$field"
-                                        :value="$values->get($field->id)"
-                                        :editable="true"
-                                        :save-url="route('clients.visits.fields.save', [$client, $visit, $field])"
-                                    />
+                        <div class="overflow-auto" style="max-height: 70vh;">
+                            @forelse ($historyVisits as $historyVisit)
+                                @php $isCurrentVisit = $visit->is($historyVisit); @endphp
+                                <div @class([
+                                    'border-b border-slate-100' => ! $loop->last,
+                                    'bg-emerald-100' => $isCurrentVisit,
+                                    'bg-amber-50' => ! $isCurrentVisit,
+                                ])>
+                                    <button
+                                        type="button"
+                                        @class([
+                                            'w-100 d-flex align-items-center justify-content-between gap-3 px-4 py-3 text-start border-0',
+                                            'bg-transparent hover:bg-emerald-200/60' => $isCurrentVisit,
+                                            'bg-transparent hover:bg-amber-100' => ! $isCurrentVisit,
+                                        ])
+                                        @click="openId = openId === {{ $historyVisit->id }} ? null : {{ $historyVisit->id }}"
+                                        :aria-expanded="openId === {{ $historyVisit->id }} ? 'true' : 'false'"
+                                    >
+                                        <span class="d-flex align-items-center flex-wrap gap-2 min-w-0">
+                                            <span @class([
+                                                'text-sm font-medium',
+                                                'text-emerald-900' => $isCurrentVisit,
+                                                'text-amber-950' => ! $isCurrentVisit,
+                                            ])>
+                                                {{ $historyVisit->visited_at?->format('Y-m-d H:i') ?? '—' }}
+                                            </span>
+                                            @if ($isCurrentVisit)
+                                                <span class="text-xs uppercase tracking-wide text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded">Current</span>
+                                            @endif
+                                        </span>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                            @class([
+                                                'w-4 h-4 shrink-0 transition-transform',
+                                                'text-emerald-700' => $isCurrentVisit,
+                                                'text-amber-600' => ! $isCurrentVisit,
+                                            ])
+                                            :class="openId === {{ $historyVisit->id }} ? 'rotate-180' : ''"
+                                            aria-hidden="true"
+                                        >
+                                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+
+                                    <div
+                                        x-show="openId === {{ $historyVisit->id }}"
+                                        x-cloak
+                                        @class([
+                                            'px-4 pb-4 border-t',
+                                            'border-emerald-200 bg-emerald-50/80' => $isCurrentVisit,
+                                            'border-amber-100 bg-amber-50/80' => ! $isCurrentVisit,
+                                        ])
+                                    >
+                                        @include('clients._visit-preview', [
+                                            'visit' => $historyVisit,
+                                            'client' => $client,
+                                            'previewSlugs' => $previewSlugs,
+                                            'previewLabels' => $previewLabels,
+                                            'liveSync' => $isCurrentVisit,
+                                        ])
+                                    </div>
                                 </div>
                             @empty
-                                <p class="text-sm text-slate-500 md:col-span-2">No fields assigned to this station.</p>
+                                <div class="px-4 py-6 text-sm text-slate-500 text-center">No visits yet.</div>
                             @endforelse
-
-                            @if ($station->formFields->contains(fn ($field) => in_array($field->slug, ['height_cm', 'weight_kg'], true)))
-                                <div class="md:col-span-2 js-bmi-panel rounded-lg border border-slate-200 bg-slate-50 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">BMI</p>
-                                        <p class="mt-1 text-lg font-semibold text-slate-800 js-bmi-value">{{ $visit->bmi() ?? '—' }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">BMI Category</p>
-                                        <p class="mt-1 text-lg font-semibold text-slate-800 js-bmi-category">{{ $visit->bmiCategory() ?? '—' }}</p>
-                                    </div>
-                                    <p class="sm:col-span-2 text-xs text-slate-500 mb-0">Calculated from Height and Weight (Asian criteria). Not saved to the database.</p>
-                                </div>
-                            @endif
-
-                            @if ($station->formFields->contains(fn ($field) => in_array($field->slug, ['systolic', 'diastolic'], true)))
-                                <div class="md:col-span-2 js-bp-panel rounded-lg border border-slate-200 bg-slate-50 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">Blood Pressure (mmHg)</p>
-                                        <p class="mt-1 text-lg font-semibold text-slate-800 js-bp-value">{{ $visit->bloodPressure() ?? '—' }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">BP Category</p>
-                                        <p @class([
-                                            'mt-1 text-lg font-semibold js-bp-category',
-                                            'text-rose-600' => $visit->bpCategory() === 'Hypertensive Crisis',
-                                            'text-slate-800' => $visit->bpCategory() !== 'Hypertensive Crisis',
-                                        ])>{{ $visit->bpCategory() ?? '—' }}</p>
-                                    </div>
-                                    <p class="sm:col-span-2 text-xs text-slate-500 mb-0">Calculated from Systolic/Diastolic. Not saved to the database.</p>
-                                </div>
-                            @endif
                         </div>
                     </div>
-                @endif
-            @endforeach
+                </div>
 
-            @if ($unassigned->isNotEmpty() && $viewStationId === 0)
-                <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6 space-y-5">
-                    <h3 class="text-lg font-semibold text-slate-800">Unassigned Fields</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                        @foreach ($unassigned as $field)
-                            <div @class(['md:col-span-2' => $field->type->value === 'textarea'])>
-                                <x-autosave-field
-                                    :field="$field"
-                                    :value="$values->get($field->id)"
-                                    :editable="true"
-                                    :save-url="route('clients.visits.fields.save', [$client, $visit, $field])"
-                                />
+                {{-- Right: Station tabs + Form (70%) --}}
+                <div class="col-70">
+                    <div class="d-flex flex-column gap-3">
+                        {{-- Station div --}}
+                        <div class="bg-white shadow-sm rounded-lg p-3 sm:p-4">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex gap-2 overflow-auto pb-1 min-w-0">
+                                    @foreach ($stations as $station)
+                                        <a
+                                            href="{{ route('clients.visits.encode', ['client' => $client, 'visit' => $visit, 'station' => $station->id, 'view' => $station->id]) }}"
+                                            @class([
+                                                'px-3 py-1.5 rounded-md text-sm border whitespace-nowrap shrink-0',
+                                                'bg-teal-700 text-white border-teal-700' => (int) request('view', $activeStationId) === (int) $station->id,
+                                                'bg-white text-slate-700 border-slate-300' => (int) request('view', $activeStationId) !== (int) $station->id,
+                                            ])
+                                        >
+                                            {{ $station->name }}
+                                        </a>
+                                    @endforeach
+                                    @if ($unassigned->isNotEmpty())
+                                        <a
+                                            href="{{ route('clients.visits.encode', ['client' => $client, 'visit' => $visit, 'station' => $activeStationId, 'view' => 0]) }}"
+                                            @class([
+                                                'px-3 py-1.5 rounded-md text-sm border whitespace-nowrap shrink-0',
+                                                'bg-teal-700 text-white border-teal-700' => (int) request('view', $activeStationId) === 0,
+                                                'bg-white text-slate-700 border-slate-300' => (int) request('view', $activeStationId) !== 0,
+                                            ])
+                                        >
+                                            Unassigned
+                                        </a>
+                                    @endif
+                                </div>
+
+                                <form method="POST" action="{{ route('clients.visits.store', $client) }}" class="shrink-0 ms-auto">
+                                    @csrf
+                                    <button class="px-3 py-1.5 rounded-md text-sm border border-teal-700 text-teal-800 hover:bg-teal-50 whitespace-nowrap">
+                                        New Visit
+                                    </button>
+                                </form>
                             </div>
+                        </div>
+
+                        {{-- Form div --}}
+                        @foreach ($stations as $station)
+                            @if ((int) $viewStationId === (int) $station->id)
+                                <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">{{ $station->name }}</h3>
+
+                                    <div class="d-flex flex-column gap-4">
+                                        @forelse ($station->formFields as $field)
+                                            <div>
+                                                <x-autosave-field
+                                                    :field="$field"
+                                                    :value="$values->get($field->id)"
+                                                    :editable="true"
+                                                    :save-url="route('clients.visits.fields.save', [$client, $visit, $field])"
+                                                />
+                                            </div>
+                                        @empty
+                                            @unless (in_array($station->name, ['Pharmacy', 'Consultation'], true))
+                                                <p class="text-sm text-slate-500 mb-0">No fields assigned to this station.</p>
+                                            @endunless
+                                        @endforelse
+
+                                        @if ($station->name === 'Consultation')
+                                            @php
+                                                $dispositionValue = $visit->disposition?->value ?? \App\Enums\VisitDisposition::Active->value;
+                                            @endphp
+                                            <div
+                                                class="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                                                x-data="consultationDisposition({
+                                                    url: @js(route('clients.visits.disposition', [$client, $visit])),
+                                                    initial: @js($dispositionValue),
+                                                    reloadOnChange: false,
+                                                })"
+                                            >
+                                                <label class="block text-sm font-medium text-slate-800 mb-2">Disposition</label>
+                                                <select
+                                                    x-model="disposition"
+                                                    @change="save()"
+                                                    :disabled="saving"
+                                                    :class="disposition === 'active'
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-900 focus:border-emerald-600 focus:ring-emerald-600'
+                                                        : 'border-slate-300 bg-white text-slate-800 focus:border-teal-600 focus:ring-teal-600'"
+                                                    class="w-full rounded-md text-sm shadow-sm"
+                                                >
+                                                    @foreach (\App\Enums\VisitDisposition::cases() as $disposition)
+                                                        <option value="{{ $disposition->value }}">{{ $disposition->label() }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <p class="text-xs mt-2 mb-0" :class="statusClass" x-text="statusText"></p>
+                                            </div>
+
+                                            @include('clients._recommended-medicines')
+                                        @endif
+
+                                        @if ($station->name === 'Pharmacy')
+                                            @include('clients._dispensed-medicines')
+                                        @endif
+
+                                        @if ($station->name === 'Blood Glucose')
+                                            <div
+                                                class="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                                                x-data="consultationQueueToggle({
+                                                    url: @js(route('clients.visits.consultation-queue', [$client, $visit])),
+                                                    initial: @js($visit->isQueuedForConsultation()),
+                                                    locked: @js($visit->disposition !== null && $visit->disposition !== \App\Enums\VisitDisposition::Active),
+                                                })"
+                                            >
+                                                <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                                                    <div>
+                                                        <p class="text-sm font-medium text-slate-800 mb-0">Send to consultation</p>
+                                                        <p class="text-xs text-slate-500 mb-0">Adds this patient to the consultation queue when enabled.</p>
+                                                    </div>
+                                                    <label class="d-inline-flex align-items-center gap-2 text-sm" style="cursor:pointer;">
+                                                        <input
+                                                            type="checkbox"
+                                                            class="rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+                                                            x-model="queued"
+                                                            @change="save()"
+                                                            :disabled="saving || locked"
+                                                        >
+                                                        <span x-text="queued ? 'Queued' : 'Not queued'"></span>
+                                                    </label>
+                                                </div>
+                                                <p class="text-xs mt-2 mb-0" :class="statusClass" x-text="statusText"></p>
+                                                <p class="text-xs text-amber-700 mt-1 mb-0" x-show="locked" x-cloak>
+                                                    Queue lock: disposition is already completed.
+                                                </p>
+                                            </div>
+                                        @endif
+
+                                        @if ($station->formFields->contains(fn ($field) => in_array($field->slug, ['height_cm', 'weight_kg'], true)))
+                                            <div class="js-bmi-panel rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                                <div class="row g-3">
+                                                    <div class="col-12 col-sm-6">
+                                                        <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">BMI</p>
+                                                        <p class="mt-0 text-lg font-semibold text-slate-800 js-bmi-value mb-0">{{ $visit->bmi() ?? '—' }}</p>
+                                                    </div>
+                                                    <div @class([
+                                                        'col-12 col-sm-6 rounded px-2 py-2',
+                                                        \App\Support\BmiCalculator::categoryBackgroundClass($visit->bmiCategory()),
+                                                    ])>
+                                                        <p class="text-xs uppercase tracking-wide opacity-70 mb-1">BMI Category</p>
+                                                        <p class="mt-0 text-lg font-semibold js-bmi-category mb-0">{{ $visit->bmiCategory() ?? '—' }}</p>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <p class="text-xs text-slate-500 mb-0">Calculated from Height and Weight (Asian criteria). Not saved to the database.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($station->formFields->contains(fn ($field) => in_array($field->slug, ['systolic', 'diastolic'], true)))
+                                            <div class="js-bp-panel rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                                <div class="row g-3">
+                                                    <div class="col-12 col-sm-6">
+                                                        <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Blood Pressure (mmHg)</p>
+                                                        <p class="mt-0 text-lg font-semibold text-slate-800 js-bp-value mb-0">{{ $visit->bloodPressure() ?? '—' }}</p>
+                                                    </div>
+                                                    <div @class([
+                                                        'col-12 col-sm-6 rounded px-2 py-2',
+                                                        \App\Support\BpCategoryCalculator::categoryBackgroundClass($visit->bpCategory()),
+                                                    ])>
+                                                        <p class="text-xs uppercase tracking-wide opacity-70 mb-1">BP Category</p>
+                                                        <p class="mt-0 text-lg font-semibold js-bp-category mb-0">{{ $visit->bpCategory() ?? '—' }}</p>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <p class="text-xs text-slate-500 mb-0">Calculated from Systolic/Diastolic. Not saved to the database.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
                         @endforeach
+
+                        @if ($unassigned->isNotEmpty() && $viewStationId === 0)
+                            <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6">
+                                <h3 class="text-lg font-semibold text-slate-800 mb-4">Unassigned Fields</h3>
+                                <div class="d-flex flex-column gap-4">
+                                    @foreach ($unassigned as $field)
+                                        <div>
+                                            <x-autosave-field
+                                                :field="$field"
+                                                :value="$values->get($field->id)"
+                                                :editable="true"
+                                                :save-url="route('clients.visits.fields.save', [$client, $visit, $field])"
+                                            />
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
-            @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

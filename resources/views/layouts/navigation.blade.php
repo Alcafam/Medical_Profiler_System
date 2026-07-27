@@ -19,6 +19,12 @@
                         </x-nav-link>
                     @endif
 
+                    @if (auth()->user()->canManageInventory())
+                        <x-nav-link :href="route('medicines.index')" :active="request()->routeIs('medicines.*')">
+                            Inventory
+                        </x-nav-link>
+                    @endif
+
                     @if (auth()->user()->canManageStations())
                         <x-nav-link :href="route('stations.index')" :active="request()->routeIs('stations.*')">
                             Stations
@@ -78,6 +84,9 @@
             <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">Clients</x-responsive-nav-link>
             @if (auth()->user()->canUseGrid())
                 <x-responsive-nav-link :href="route('clients.grid')" :active="request()->routeIs('clients.grid')">Spreadsheet</x-responsive-nav-link>
+            @endif
+            @if (auth()->user()->canManageInventory())
+                <x-responsive-nav-link :href="route('medicines.index')" :active="request()->routeIs('medicines.*')">Inventory</x-responsive-nav-link>
             @endif
             @if (auth()->user()->canManageStations())
                 <x-responsive-nav-link :href="route('stations.index')" :active="request()->routeIs('stations.*')">Stations</x-responsive-nav-link>
