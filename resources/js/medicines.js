@@ -1,3 +1,7 @@
+function isSelectableMedicine(medicine) {
+    return (medicine.quantity_remaining ?? 0) > 0 && medicine.expiry_status !== 'expired';
+}
+
 export function medicineRecommendationsPanel({ storeUrl, destroyUrlTemplate, medicines, initialItems }) {
     return {
         medicines,
@@ -12,11 +16,13 @@ export function medicineRecommendationsPanel({ storeUrl, destroyUrlTemplate, med
         statusClass: 'text-slate-400',
         get filtered() {
             const q = this.query.trim().toLowerCase();
+            const list = this.medicines.filter(isSelectableMedicine);
+
             if (!q) {
-                return this.medicines.slice(0, 40);
+                return list.slice(0, 40);
             }
 
-            return this.medicines
+            return list
                 .filter((m) => {
                     const hay = `${m.label} ${m.generic_name} ${m.brand_name} ${m.dosage_strength || ''}`.toLowerCase();
                     return hay.includes(q);
@@ -70,7 +76,7 @@ export function medicineRecommendationsPanel({ storeUrl, destroyUrlTemplate, med
                 this.query = '';
                 this.quantity = '';
                 this.instructions = '';
-                this.statusText = 'Recommended medicine added';
+                this.statusText = 'Added to prescription';
                 this.statusClass = 'text-teal-700';
             } catch (e) {
                 this.statusText = e.message || 'Error saving';
@@ -80,7 +86,7 @@ export function medicineRecommendationsPanel({ storeUrl, destroyUrlTemplate, med
             }
         },
         async remove(item) {
-            if (!confirm('Remove this recommended medicine?')) {
+            if (!confirm('Remove this medicine from the prescription?')) {
                 return;
             }
 
@@ -133,7 +139,7 @@ export function medicineDispensePanel({
         statusClass: 'text-slate-400',
         get filtered() {
             const q = this.query.trim().toLowerCase();
-            const list = this.medicines.filter((m) => m.quantity_remaining > 0);
+            const list = this.medicines.filter(isSelectableMedicine);
 
             if (!q) {
                 return list.slice(0, 40);
@@ -150,7 +156,12 @@ export function medicineDispensePanel({
             return this.medicines.find((m) => String(m.id) === String(this.selectedId)) || null;
         },
         medicineForRecommendation(rec) {
-            return this.medicines.find((m) => String(m.id) === String(rec.medicine_id)) || null;
+            const medicine = this.medicines.find((m) => String(m.id) === String(rec.medicine_id)) || null;
+            if (!medicine || !isSelectableMedicine(medicine)) {
+                return null;
+            }
+
+            return medicine;
         },
         isRecommendationDispensed(rec) {
             return this.items.some((item) => String(item.medicine_id) === String(rec.medicine_id));
@@ -163,7 +174,7 @@ export function medicineDispensePanel({
         selectRecommendation(rec) {
             const medicine = this.medicineForRecommendation(rec);
             if (!medicine) {
-                this.statusText = 'Medicine not found in active inventory.';
+                this.statusText = 'Medicine is out of stock or expired.';
                 this.statusClass = 'text-rose-600';
                 return;
             }
@@ -173,7 +184,7 @@ export function medicineDispensePanel({
             this.quantity = rec.quantity && Number(rec.quantity) > 0 ? Number(rec.quantity) : 1;
             this.remarks = rec.instructions || '';
             this.open = false;
-            this.statusText = 'Recommendation loaded — adjust qty if needed, then Dispense.';
+            this.statusText = 'Prescription loaded — adjust qty if needed, then Dispense.';
             this.statusClass = 'text-teal-700';
         },
         expiryClass(status) {
@@ -243,6 +254,12 @@ export function medicineDispensePanel({
                 return;
             }
 
+            if (!isSelectableMedicine(medicine)) {
+                this.statusText = 'Medicine is out of stock or expired.';
+                this.statusClass = 'text-rose-600';
+                return;
+            }
+
             const qty = Number(this.quantity);
             if (!Number.isFinite(qty) || qty < 1) {
                 this.statusText = 'Enter a valid quantity.';
@@ -255,7 +272,7 @@ export function medicineDispensePanel({
         async dispenseRecommendation(rec) {
             const medicine = this.medicineForRecommendation(rec);
             if (!medicine) {
-                this.statusText = 'Medicine not found in active inventory.';
+                this.statusText = 'Medicine is out of stock or expired.';
                 this.statusClass = 'text-rose-600';
                 return;
             }

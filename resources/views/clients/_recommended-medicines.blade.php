@@ -9,7 +9,7 @@
     @click.outside="open = false"
 >
     <div class="mb-3">
-        <h4 class="text-sm font-semibold text-slate-800 mb-0">Recommended medicines</h4>
+        <h4 class="text-sm font-semibold text-slate-800 mb-0">Prescription</h4>
         <p class="text-xs text-slate-500 mb-0">Pick from inventory for Pharmacy to dispense. Does not change stock.</p>
     </div>
 
@@ -38,9 +38,12 @@
                         @click="selectMedicine(medicine)"
                     >
                         <span class="d-block text-sm text-slate-800" x-text="medicine.label"></span>
+                        <span class="d-block text-xs text-slate-600">
+                            Dosage <span x-text="medicine.dosage_strength || '—'"></span>
+                        </span>
                         <span class="d-block text-xs" :class="expiryClass(medicine.expiry_status)">
                             Exp <span x-text="medicine.expiration_label"></span>
-                            · Rem <span x-text="medicine.quantity_remaining"></span>
+                            · Stock <span x-text="medicine.quantity_remaining"></span>
                         </span>
                     </button>
                 </template>
@@ -53,7 +56,7 @@
                 <input type="number" min="1" class="w-full rounded-md border-slate-300 text-sm shadow-sm" x-model="quantity">
             </div>
             <div class="col-12 col-sm-8">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Instructions (optional)</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">sig</label>
                 <input type="text" class="w-full rounded-md border-slate-300 text-sm shadow-sm" x-model="instructions" placeholder="e.g. 1 tab 3x a day for 7 days">
             </div>
         </div>
@@ -65,7 +68,7 @@
                 @click="add()"
                 :disabled="saving"
             >
-                Add recommendation
+                Add to prescription
             </button>
             <p class="text-xs mt-2 mb-0" :class="statusClass" x-text="statusText"></p>
         </div>
@@ -73,7 +76,7 @@
         <div class="border-t border-slate-200 pt-3">
             <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">This visit</p>
             <template x-if="items.length === 0">
-                <p class="text-sm text-slate-500 mb-0">No recommended medicines yet.</p>
+                <p class="text-sm text-slate-500 mb-0">No medicines prescribed yet.</p>
             </template>
             <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                 <template x-for="item in items" :key="item.id">
@@ -83,7 +86,7 @@
                             <p class="text-xs text-slate-500 mb-0">
                                 <span x-show="item.quantity">Qty <span x-text="item.quantity"></span></span>
                                 <span x-show="item.quantity && item.instructions"> · </span>
-                                <span x-text="item.instructions || ''"></span>
+                                <span x-show="item.instructions">sig <span x-text="item.instructions"></span></span>
                             </p>
                             <p class="text-xs mb-0" :class="expiryClass(item.expiry_status)">
                                 Exp <span x-text="item.expiration_label"></span>

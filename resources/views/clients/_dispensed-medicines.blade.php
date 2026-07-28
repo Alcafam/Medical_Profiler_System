@@ -25,16 +25,19 @@
                             <p class="text-xs text-slate-500 mb-0">
                                 <span x-show="rec.quantity">Qty <span x-text="rec.quantity"></span></span>
                                 <span x-show="rec.quantity && rec.instructions"> · </span>
-                                <span x-text="rec.instructions || ''"></span>
+                                <span x-show="rec.instructions">sig <span x-text="rec.instructions"></span></span>
                             </p>
                             <template x-if="medicineForRecommendation(rec)">
                                 <p class="text-xs mb-0" :class="expiryClass(medicineForRecommendation(rec).expiry_status)">
-                                    Rem <span x-text="medicineForRecommendation(rec).quantity_remaining"></span>
+                                    Stock <span x-text="medicineForRecommendation(rec).quantity_remaining"></span>
                                     · Exp <span x-text="medicineForRecommendation(rec).expiration_label"></span>
+                                    <span x-show="medicineForRecommendation(rec).dosage_strength">
+                                        · Dosage <span x-text="medicineForRecommendation(rec).dosage_strength"></span>
+                                    </span>
                                 </p>
                             </template>
                             <template x-if="!medicineForRecommendation(rec)">
-                                <p class="text-xs text-rose-600 mb-0">Not in active inventory</p>
+                                <p class="text-xs text-rose-600 mb-0">Out of stock or expired</p>
                             </template>
                             <p class="text-xs text-teal-700 mb-0" x-show="isRecommendationDispensed(rec)">Already dispensed this visit</p>
                         </div>
@@ -87,9 +90,12 @@
                         @click="selectMedicine(medicine)"
                     >
                         <span class="d-block text-sm text-slate-800" x-text="medicine.label"></span>
+                        <span class="d-block text-xs text-slate-600">
+                            Dosage <span x-text="medicine.dosage_strength || '—'"></span>
+                        </span>
                         <span class="d-block text-xs" :class="expiryClass(medicine.expiry_status)">
                             Exp <span x-text="medicine.expiration_label"></span>
-                            · Rem <span x-text="medicine.quantity_remaining"></span>
+                            · Stock <span x-text="medicine.quantity_remaining"></span>
                         </span>
                     </button>
                 </template>

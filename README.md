@@ -46,7 +46,7 @@ Password for all: `12345678`
 - Station-based encoding with field-level autosave
 - **Consultation queue** — Blood Glucose can send patients to consult; consultation encoders see an Active/Completed queue
 - **Medicine inventory** — admin/super admin CRUD with expiry row colors and archive; seeded from mission inventory CSV
-- **Recommended medicines** — Consultation picks from inventory (no stock change)
+- **Prescription** — Consultation picks from inventory (no stock change); out-of-stock and expired meds are hidden
 - **Dispense** — Pharmacy picks from inventory and updates QTY Dispensed / Remaining
 - Conflict UI (keep theirs / overwrite)
 - Spreadsheet grid shows **latest visit only** (admin/super admin)
