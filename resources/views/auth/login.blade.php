@@ -1,4 +1,11 @@
 <x-guest-layout>
+    <x-slot name="header">
+        <p class="italic text-sm leading-relaxed text-gray-600">
+            And whatsoever ye do, do it heartily, as to the Lord, and not unto men
+            <span class="not-italic text-gray-500">(Colossians 3:23–24)</span>
+        </p>
+    </x-slot>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
