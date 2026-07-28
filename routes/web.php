@@ -10,6 +10,7 @@ use App\Http\Controllers\FormFieldController;
 use App\Http\Controllers\MedicineInventoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\SystemFlowController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\VisitMedicineController;
 use Illuminate\Support\Facades\Route;
@@ -25,13 +26,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients/create', [ClientController::class, 'create'])->name('clients.create');
     Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');
 
+    Route::get('/medicines', [MedicineInventoryController::class, 'index'])->name('medicines.index');
+
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::get('/clients/export', ClientExportController::class)->name('clients.export');
         Route::get('/grid', [ClientGridController::class, 'index'])->name('clients.grid');
         Route::patch('/grid/{client}/fields/{field}', [ClientGridController::class, 'saveCell'])
             ->name('clients.grid.save');
 
-        Route::resource('medicines', MedicineInventoryController::class)->except(['show']);
+        Route::resource('medicines', MedicineInventoryController::class)->except(['show', 'index']);
         Route::post('/medicines/{medicine}/restore', [MedicineInventoryController::class, 'restore'])
             ->name('medicines.restore');
     });
@@ -64,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('stations', StationController::class)->except(['show']);
         Route::resource('form-fields', FormFieldController::class)->except(['show']);
         Route::resource('users', UserManagementController::class)->except(['show']);
+        Route::get('/system-flow', [SystemFlowController::class, 'index'])->name('system-flow.index');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

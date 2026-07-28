@@ -88,6 +88,11 @@ class User extends Authenticatable
         return $this->role->canManageInventory();
     }
 
+    public function canViewInventory(): bool
+    {
+        return $this->canManageInventory() || $this->isPharmacyEncoder();
+    }
+
     /**
      * Encoders and admins may edit any active field.
      */
@@ -116,5 +121,10 @@ class User extends Authenticatable
     public function isConsultationEncoder(): bool
     {
         return $this->isEncoder() && $this->station?->name === 'Consultation';
+    }
+
+    public function isPharmacyEncoder(): bool
+    {
+        return $this->isEncoder() && $this->station?->name === 'Pharmacy';
     }
 }

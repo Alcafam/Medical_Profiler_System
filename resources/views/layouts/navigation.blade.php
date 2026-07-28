@@ -19,7 +19,7 @@
                         </x-nav-link>
                     @endif
 
-                    @if (auth()->user()->canManageInventory())
+                    @if (auth()->user()->canViewInventory())
                         <x-nav-link :href="route('medicines.index')" :active="request()->routeIs('medicines.*')">
                             Inventory
                         </x-nav-link>
@@ -34,6 +34,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                             Users
+                        </x-nav-link>
+                        <x-nav-link :href="route('system-flow.index')" :active="request()->routeIs('system-flow.*')">
+                            System Flow
                         </x-nav-link>
                     @endif
                 </div>
@@ -85,13 +88,14 @@
             @if (auth()->user()->canUseGrid())
                 <x-responsive-nav-link :href="route('clients.grid')" :active="request()->routeIs('clients.grid')">Spreadsheet</x-responsive-nav-link>
             @endif
-            @if (auth()->user()->canManageInventory())
+            @if (auth()->user()->canViewInventory())
                 <x-responsive-nav-link :href="route('medicines.index')" :active="request()->routeIs('medicines.*')">Inventory</x-responsive-nav-link>
             @endif
             @if (auth()->user()->canManageStations())
                 <x-responsive-nav-link :href="route('stations.index')" :active="request()->routeIs('stations.*')">Stations</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('form-fields.index')" :active="request()->routeIs('form-fields.*')">Form Builder</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">Users</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('system-flow.index')" :active="request()->routeIs('system-flow.*')">System Flow</x-responsive-nav-link>
             @endif
         </div>
         <div class="pt-4 pb-1 border-t border-slate-200">

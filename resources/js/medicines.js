@@ -112,10 +112,17 @@ export function medicineRecommendationsPanel({ storeUrl, destroyUrlTemplate, med
     };
 }
 
-export function medicineDispensePanel({ storeUrl, destroyUrlTemplate, medicines, initialItems }) {
+export function medicineDispensePanel({
+    storeUrl,
+    destroyUrlTemplate,
+    medicines,
+    initialItems,
+    recommendations = [],
+}) {
     return {
         medicines,
         items: initialItems,
+        recommendations,
         query: '',
         selectedId: '',
         quantity: 1,
@@ -142,10 +149,32 @@ export function medicineDispensePanel({ storeUrl, destroyUrlTemplate, medicines,
         selectedMedicine() {
             return this.medicines.find((m) => String(m.id) === String(this.selectedId)) || null;
         },
+        medicineForRecommendation(rec) {
+            return this.medicines.find((m) => String(m.id) === String(rec.medicine_id)) || null;
+        },
+        isRecommendationDispensed(rec) {
+            return this.items.some((item) => String(item.medicine_id) === String(rec.medicine_id));
+        },
         selectMedicine(medicine) {
             this.selectedId = String(medicine.id);
             this.query = medicine.label;
             this.open = false;
+        },
+        selectRecommendation(rec) {
+            const medicine = this.medicineForRecommendation(rec);
+            if (!medicine) {
+                this.statusText = 'Medicine not found in active inventory.';
+                this.statusClass = 'text-rose-600';
+                return;
+            }
+
+            this.selectedId = String(medicine.id);
+            this.query = medicine.label;
+            this.quantity = rec.quantity && Number(rec.quantity) > 0 ? Number(rec.quantity) : 1;
+            this.remarks = rec.instructions || '';
+            this.open = false;
+            this.statusText = 'Recommendation loaded — adjust qty if needed, then Dispense.';
+            this.statusClass = 'text-teal-700';
         },
         expiryClass(status) {
             if (status === 'expired') return 'text-red-800 font-semibold';
@@ -159,6 +188,52 @@ export function medicineDispensePanel({ storeUrl, destroyUrlTemplate, medicines,
             }
 
             this.medicines = this.medicines.map((m) => (m.id === updated.id ? { ...m, ...updated } : m));
+        },
+        async dispenseMedicine(medicineId, qty, remarks, { clearForm = false } = {}) {
+            this.saving = true;
+            this.statusText = 'Saving…';
+            this.statusClass = 'text-amber-600';
+
+            try {
+                const response = await fetch(storeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        medicine_id: Number(medicineId),
+                        quantity: qty,
+                        remarks: remarks || null,
+                    }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || Object.values(data.errors || {}).flat()[0] || 'Failed');
+                }
+
+                this.items.push(data.item);
+                this.patchMedicine(data.medicine);
+
+                if (clearForm) {
+                    this.selectedId = '';
+                    this.query = '';
+                    this.quantity = 1;
+                    this.remarks = '';
+                }
+
+                this.statusText = 'Medicine dispensed';
+                this.statusClass = 'text-teal-700';
+                return true;
+            } catch (e) {
+                this.statusText = e.message || 'Error saving';
+                this.statusClass = 'text-rose-600';
+                return false;
+            } finally {
+                this.saving = false;
+            }
         },
         async add() {
             const medicine = this.selectedMedicine();
@@ -175,44 +250,31 @@ export function medicineDispensePanel({ storeUrl, destroyUrlTemplate, medicines,
                 return;
             }
 
-            this.saving = true;
-            this.statusText = 'Saving…';
-            this.statusClass = 'text-amber-600';
-
-            try {
-                const response = await fetch(storeUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({
-                        medicine_id: Number(this.selectedId),
-                        quantity: qty,
-                        remarks: this.remarks || null,
-                    }),
-                });
-
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || Object.values(data.errors || {}).flat()[0] || 'Failed');
-                }
-
-                this.items.push(data.item);
-                this.patchMedicine(data.medicine);
-                this.selectedId = '';
-                this.query = '';
-                this.quantity = 1;
-                this.remarks = '';
-                this.statusText = 'Medicine dispensed';
-                this.statusClass = 'text-teal-700';
-            } catch (e) {
-                this.statusText = e.message || 'Error saving';
+            await this.dispenseMedicine(medicine.id, qty, this.remarks, { clearForm: true });
+        },
+        async dispenseRecommendation(rec) {
+            const medicine = this.medicineForRecommendation(rec);
+            if (!medicine) {
+                this.statusText = 'Medicine not found in active inventory.';
                 this.statusClass = 'text-rose-600';
-            } finally {
-                this.saving = false;
+                return;
             }
+
+            if (medicine.quantity_remaining < 1) {
+                this.statusText = 'Out of stock for this medicine.';
+                this.statusClass = 'text-rose-600';
+                return;
+            }
+
+            let qty = rec.quantity && Number(rec.quantity) > 0 ? Number(rec.quantity) : 1;
+            if (qty > medicine.quantity_remaining) {
+                this.statusText = `Only ${medicine.quantity_remaining} remaining in stock.`;
+                this.statusClass = 'text-rose-600';
+                this.selectRecommendation(rec);
+                return;
+            }
+
+            await this.dispenseMedicine(medicine.id, qty, rec.instructions || null);
         },
         async remove(item) {
             if (!confirm('Remove this dispense and return stock?')) {

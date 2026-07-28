@@ -9,7 +9,9 @@
                     <a href="{{ route('medicines.index', array_filter(['q' => $q ?: null])) }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Active inventory</a>
                 @else
                     <a href="{{ route('medicines.index', array_filter(['archived' => 1, 'q' => $q ?: null])) }}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-md text-sm text-slate-700">Archived</a>
-                    <a href="{{ route('medicines.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-teal-700 text-white rounded-md text-sm">Add Medicine</a>
+                    @if ($canManage)
+                        <a href="{{ route('medicines.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-teal-700 text-white rounded-md text-sm">Add Medicine</a>
+                    @endif
                 @endif
             </div>
         </div>
@@ -24,6 +26,9 @@
             <p class="text-xs text-slate-500 mb-0">
                 Color coding as of <strong>{{ now()->format('F Y') }}</strong>:
                 light yellow = expires next month · light red = expires this month · dark red = already expired.
+                @unless ($canManage)
+                    <span class="block sm:inline sm:ms-1">View only — dispense medicines from a client’s Encode page.</span>
+                @endunless
             </p>
 
             <form method="GET" action="{{ route('medicines.index') }}" class="js-live-search bg-white shadow-sm rounded-lg p-3 sm:p-4 border border-slate-200">
@@ -64,21 +69,23 @@
                         @if ($medicine->remarks)
                             <p class="text-xs opacity-80 mb-0">{{ $medicine->remarks }}</p>
                         @endif
-                        <div class="flex gap-3 text-sm pt-1">
-                            <a href="{{ route('medicines.edit', $medicine) }}" class="underline">Edit</a>
-                            @if ($archived)
-                                <form action="{{ route('medicines.restore', $medicine) }}" method="POST" onsubmit="return confirm('Restore this medicine?')">
-                                    @csrf
-                                    <button class="underline">Restore</button>
-                                </form>
-                            @else
-                                <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" onsubmit="return confirm('Archive this medicine?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="underline">Archive</button>
-                                </form>
-                            @endif
-                        </div>
+                        @if ($canManage)
+                            <div class="flex gap-3 text-sm pt-1">
+                                <a href="{{ route('medicines.edit', $medicine) }}" class="underline">Edit</a>
+                                @if ($archived)
+                                    <form action="{{ route('medicines.restore', $medicine) }}" method="POST" onsubmit="return confirm('Restore this medicine?')">
+                                        @csrf
+                                        <button class="underline">Restore</button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" onsubmit="return confirm('Archive this medicine?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="underline">Archive</button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
                     </article>
                 @empty
                     <div class="bg-white shadow-sm rounded-lg p-6 text-sm text-slate-500 text-center">No medicines found.</div>
@@ -95,8 +102,10 @@
                         <col style="width: 8%;">
                         <col style="width: 9%;">
                         <col style="width: 9%;">
-                        <col style="width: 15%;">
-                        <col style="width: 10%;">
+                        <col style="width: {{ $canManage ? '15%' : '25%' }};">
+                        @if ($canManage)
+                            <col style="width: 10%;">
+                        @endif
                     </colgroup>
                     <thead class="bg-slate-50">
                         <tr>
@@ -108,7 +117,9 @@
                             <th class="px-3 py-3 text-right">QTY Dispensed</th>
                             <th class="px-3 py-3 text-right">QTY Remaining</th>
                             <th class="px-3 py-3 text-left">Remarks</th>
-                            <th class="px-3 py-3 text-right">Actions</th>
+                            @if ($canManage)
+                                <th class="px-3 py-3 text-right">Actions</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -123,25 +134,27 @@
                                 <td class="px-3 py-3 text-right align-top text-slate-800 {{ $rowBg }}">{{ number_format($medicine->quantity_dispensed) }}</td>
                                 <td class="px-3 py-3 text-right font-medium align-top text-slate-800 {{ $rowBg }}">{{ number_format($medicine->quantityRemaining()) }}</td>
                                 <td class="px-3 py-3 break-words whitespace-normal align-top text-slate-800 {{ $rowBg }}">{{ $medicine->remarks ?: '—' }}</td>
-                                <td class="px-3 py-3 text-right space-x-2 whitespace-nowrap align-top text-slate-800 {{ $rowBg }}">
-                                    <a href="{{ route('medicines.edit', $medicine) }}" class="underline text-teal-800">Edit</a>
-                                    @if ($archived)
-                                        <form action="{{ route('medicines.restore', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Restore this medicine?')">
-                                            @csrf
-                                            <button class="underline text-teal-800">Restore</button>
-                                        </form>
-                                    @else
-                                        <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Archive this medicine?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="underline text-rose-700">Archive</button>
-                                        </form>
-                                    @endif
-                                </td>
+                                @if ($canManage)
+                                    <td class="px-3 py-3 text-right space-x-2 whitespace-nowrap align-top text-slate-800 {{ $rowBg }}">
+                                        <a href="{{ route('medicines.edit', $medicine) }}" class="underline text-teal-800">Edit</a>
+                                        @if ($archived)
+                                            <form action="{{ route('medicines.restore', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Restore this medicine?')">
+                                                @csrf
+                                                <button class="underline text-teal-800">Restore</button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Archive this medicine?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="underline text-rose-700">Archive</button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-8 text-center text-slate-500">No medicines found.</td>
+                                <td colspan="{{ $canManage ? 9 : 8 }}" class="px-4 py-8 text-center text-slate-500">No medicines found.</td>
                             </tr>
                         @endforelse
                     </tbody>

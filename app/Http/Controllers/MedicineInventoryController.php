@@ -11,10 +11,11 @@ class MedicineInventoryController extends Controller
 {
     public function index(Request $request): View
     {
-        abort_unless($request->user()->canManageInventory(), 403);
+        abort_unless($request->user()->canViewInventory(), 403);
 
         $archived = $request->boolean('archived');
         $q = trim((string) $request->input('q', ''));
+        $canManage = $request->user()->canManageInventory();
 
         $medicines = Medicine::query()
             ->when($archived, fn ($query) => $query->archived(), fn ($query) => $query->active())
@@ -34,7 +35,7 @@ class MedicineInventoryController extends Controller
             ->paginate(30)
             ->withQueryString();
 
-        return view('medicines.index', compact('medicines', 'archived', 'q'));
+        return view('medicines.index', compact('medicines', 'archived', 'q', 'canManage'));
     }
 
     public function create(Request $request): View
