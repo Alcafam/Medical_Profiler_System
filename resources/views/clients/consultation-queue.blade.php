@@ -8,10 +8,22 @@
         </div>
     </x-slot>
 
-    <div class="py-6 sm:py-8">
+    <div
+        class="py-6 sm:py-8"
+        @if ($tab === 'active')
+            x-data="consultationQueueLocks({
+                pollUrl: @js($locksPollUrl),
+                currentUserId: @js($currentUserId),
+                initialLocks: @js($initialLocks),
+            })"
+        @endif
+    >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
             @if (session('status'))
                 <div class="bg-teal-50 border border-teal-200 text-teal-800 px-4 py-3 rounded text-sm">{{ session('status') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded text-sm">{{ $errors->first() }}</div>
             @endif
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -77,10 +89,10 @@
                                 $dispositionValue = $visit->disposition?->value ?? \App\Enums\VisitDisposition::Active->value;
                             @endphp
                             <tr
-                                x-data="consultationDisposition({
-                                    url: @js(route('clients.visits.disposition', [$visit->client, $visit])),
-                                    initial: @js($dispositionValue),
-                                })"
+                                data-visit-id="{{ $visit->id }}"
+                                @if ($tab === 'active')
+                                    :class="$store.consultationLocks.isLockedByOther({{ $visit->id }}) ? 'bg-sky-50' : ''"
+                                @endif
                             >
                                 <td class="px-3 py-3 whitespace-nowrap font-medium text-slate-800">
                                     {{ $visit->waitingLabel() }}
@@ -88,6 +100,23 @@
                                 <td class="px-3 py-3 whitespace-nowrap">
                                     <div class="font-medium text-slate-800">{{ $visit->displayName() }}</div>
                                     <div class="text-xs text-slate-400 font-mono">{{ $visit->client?->system_id }}</div>
+                                    @if ($tab === 'active')
+                                        <div
+                                            class="mt-1"
+                                            x-show="$store.consultationLocks.lockFor({{ $visit->id }})"
+                                            x-cloak
+                                        >
+                                            <span
+                                                class="inline-flex items-center text-[11px] uppercase tracking-wide px-2 py-0.5 rounded border"
+                                                :class="$store.consultationLocks.lockFor({{ $visit->id }})?.is_mine
+                                                    ? 'bg-teal-50 text-teal-800 border-teal-200'
+                                                    : 'bg-sky-100 text-sky-900 border-sky-300'"
+                                                x-text="$store.consultationLocks.lockFor({{ $visit->id }})?.is_mine
+                                                    ? 'You are treating'
+                                                    : ('In consult — ' + ($store.consultationLocks.lockFor({{ $visit->id }})?.locked_by_name || 'Consultant'))"
+                                            ></span>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-3 py-3 whitespace-nowrap">{{ $visit->age() ?? '—' }}</td>
                                 <td class="px-3 py-3 whitespace-nowrap">{{ $visit->fieldValue('sex') ?? '—' }}</td>
@@ -105,11 +134,21 @@
                                     as="td"
                                     class="px-3 py-3 whitespace-nowrap"
                                 />
-                                <td class="px-3 py-3 min-w-[14rem]">
+                                <td
+                                    class="px-3 py-3 min-w-[14rem]"
+                                    x-data="consultationDisposition({
+                                        url: @js(route('clients.visits.disposition', [$visit->client, $visit])),
+                                        initial: @js($dispositionValue),
+                                    })"
+                                >
                                     <select
                                         x-model="disposition"
                                         @change="save()"
-                                        :disabled="saving"
+                                        @if ($tab === 'active')
+                                            :disabled="saving || $store.consultationLocks.isLockedByOther({{ $visit->id }})"
+                                        @else
+                                            :disabled="saving"
+                                        @endif
                                         :class="disposition === 'active'
                                             ? 'border-emerald-500 bg-emerald-50 text-emerald-900 focus:border-emerald-600 focus:ring-emerald-600'
                                             : 'border-slate-300 bg-white text-slate-800 focus:border-teal-600 focus:ring-teal-600'"
@@ -122,12 +161,29 @@
                                     <p class="text-xs mt-1 mb-0" :class="statusClass" x-text="statusText"></p>
                                 </td>
                                 <td class="px-3 py-3 text-right whitespace-nowrap">
-                                    <a
-                                        href="{{ route('clients.encode', $visit->client) }}"
-                                        class="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-teal-700 text-white hover:bg-teal-800"
-                                    >
-                                        Encode
-                                    </a>
+                                    @if ($tab === 'active')
+                                        <span
+                                            x-show="$store.consultationLocks.isLockedByOther({{ $visit->id }})"
+                                            x-cloak
+                                            class="inline-flex items-center px-3 py-1.5 rounded-md text-sm border border-slate-300 text-slate-400 cursor-not-allowed"
+                                        >
+                                            In consult
+                                        </span>
+                                        <a
+                                            x-show="! $store.consultationLocks.isLockedByOther({{ $visit->id }})"
+                                            href="{{ route('clients.encode', $visit->client) }}"
+                                            class="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-teal-700 text-white hover:bg-teal-800"
+                                        >
+                                            Encode
+                                        </a>
+                                    @else
+                                        <a
+                                            href="{{ route('clients.encode', $visit->client) }}"
+                                            class="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-teal-700 text-white hover:bg-teal-800"
+                                        >
+                                            Encode
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

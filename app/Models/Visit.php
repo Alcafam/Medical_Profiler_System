@@ -21,6 +21,9 @@ class Visit extends Model
         'client_type',
     ];
 
+    /** Seconds without heartbeat before a consultation lock expires. */
+    public const CONSULTATION_LOCK_SECONDS = 90;
+
     protected $fillable = [
         'client_id',
         'visited_at',
@@ -29,6 +32,8 @@ class Visit extends Model
         'queued_for_consultation_at',
         'disposition',
         'disposition_at',
+        'consultation_locked_by',
+        'consultation_locked_at',
     ];
 
     protected function casts(): array
@@ -37,6 +42,7 @@ class Visit extends Model
             'visited_at' => 'datetime',
             'queued_for_consultation_at' => 'datetime',
             'disposition_at' => 'datetime',
+            'consultation_locked_at' => 'datetime',
             'disposition' => VisitDisposition::class,
         ];
     }
@@ -49,6 +55,11 @@ class Visit extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function consultationLocker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'consultation_locked_by');
     }
 
     public function fieldValues(): HasMany
@@ -110,6 +121,8 @@ class Visit extends Model
             'queued_for_consultation_at' => null,
             'disposition' => null,
             'disposition_at' => null,
+            'consultation_locked_by' => null,
+            'consultation_locked_at' => null,
         ])->save();
 
         return true;
@@ -117,10 +130,121 @@ class Visit extends Model
 
     public function setDisposition(VisitDisposition $disposition): void
     {
-        $this->forceFill([
+        $payload = [
             'disposition' => $disposition,
             'disposition_at' => now(),
+        ];
+
+        if ($disposition !== VisitDisposition::Active) {
+            $payload['consultation_locked_by'] = null;
+            $payload['consultation_locked_at'] = null;
+        }
+
+        $this->forceFill($payload)->save();
+    }
+
+    public function hasFreshConsultationLock(): bool
+    {
+        if ($this->consultation_locked_by === null || $this->consultation_locked_at === null) {
+            return false;
+        }
+
+        return $this->consultation_locked_at->gt(now()->subSeconds(self::CONSULTATION_LOCK_SECONDS));
+    }
+
+    public function isConsultationLockedBy(User $user): bool
+    {
+        return $this->hasFreshConsultationLock()
+            && (int) $this->consultation_locked_by === (int) $user->id;
+    }
+
+    public function isConsultationLockedByOther(User $user): bool
+    {
+        return $this->hasFreshConsultationLock()
+            && (int) $this->consultation_locked_by !== (int) $user->id;
+    }
+
+    public function clearStaleConsultationLock(): void
+    {
+        if ($this->consultation_locked_by === null) {
+            return;
+        }
+
+        if ($this->hasFreshConsultationLock()) {
+            return;
+        }
+
+        $this->forceFill([
+            'consultation_locked_by' => null,
+            'consultation_locked_at' => null,
         ])->save();
+    }
+
+    public function acquireConsultationLock(User $user): bool
+    {
+        $this->clearStaleConsultationLock();
+        $this->refresh();
+
+        if ($this->isConsultationLockedByOther($user)) {
+            return false;
+        }
+
+        $this->forceFill([
+            'consultation_locked_by' => $user->id,
+            'consultation_locked_at' => now(),
+        ])->save();
+
+        return true;
+    }
+
+    public function touchConsultationLock(User $user): bool
+    {
+        $this->clearStaleConsultationLock();
+        $this->refresh();
+
+        if ($this->isConsultationLockedByOther($user)) {
+            return false;
+        }
+
+        $this->forceFill([
+            'consultation_locked_by' => $user->id,
+            'consultation_locked_at' => now(),
+        ])->save();
+
+        return true;
+    }
+
+    public function releaseConsultationLock(?User $user = null): void
+    {
+        if ($user !== null
+            && $this->consultation_locked_by !== null
+            && (int) $this->consultation_locked_by !== (int) $user->id
+        ) {
+            return;
+        }
+
+        if ($this->consultation_locked_by === null && $this->consultation_locked_at === null) {
+            return;
+        }
+
+        $this->forceFill([
+            'consultation_locked_by' => null,
+            'consultation_locked_at' => null,
+        ])->save();
+    }
+
+    public static function clearExpiredConsultationLocks(): void
+    {
+        static::query()
+            ->whereNotNull('consultation_locked_by')
+            ->where(function ($query) {
+                $query->whereNull('consultation_locked_at')
+                    ->orWhere('consultation_locked_at', '<', now()->subSeconds(self::CONSULTATION_LOCK_SECONDS));
+            })
+            ->update([
+                'consultation_locked_by' => null,
+                'consultation_locked_at' => null,
+            ]);
     }
 
     public function waitingMinutes(): int

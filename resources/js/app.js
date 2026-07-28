@@ -2,7 +2,7 @@ import './bootstrap';
 import $ from 'jquery';
 import Alpine from 'alpinejs';
 import { autosaveField } from './autosave';
-import { consultationDisposition, consultationQueueToggle } from './consultation-queue';
+import { consultationDisposition, consultationQueueLocks, consultationQueueToggle, startConsultationLockHeartbeat } from './consultation-queue';
 import { medicineDispensePanel, medicineRecommendationsPanel } from './medicines';
 
 window.$ = window.jQuery = $;
@@ -10,6 +10,8 @@ window.Alpine = Alpine;
 window.autosaveField = autosaveField;
 window.consultationQueueToggle = consultationQueueToggle;
 window.consultationDisposition = consultationDisposition;
+window.consultationQueueLocks = consultationQueueLocks;
+window.startConsultationLockHeartbeat = startConsultationLockHeartbeat;
 window.medicineRecommendationsPanel = medicineRecommendationsPanel;
 window.medicineDispensePanel = medicineDispensePanel;
 

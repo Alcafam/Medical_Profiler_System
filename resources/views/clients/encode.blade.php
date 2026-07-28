@@ -27,6 +27,19 @@
         </a>
     @endpush
 
+    @if (! empty($consultationLockHeld))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof window.startConsultationLockHeartbeat === 'function') {
+                    window.startConsultationLockHeartbeat({
+                        heartbeatUrl: @js($consultationHeartbeatUrl),
+                        releaseUrl: @js($consultationReleaseUrl),
+                    });
+                }
+            });
+        </script>
+    @endif
+
     <div class="py-6 sm:py-8">
         <div class="container-fluid encode-layout-shell px-3 px-sm-4 px-lg-5">
             @if (session('status'))

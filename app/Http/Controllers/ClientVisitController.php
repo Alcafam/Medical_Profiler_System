@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\VisitDisposition;
 use App\Models\Client;
 use App\Models\FormField;
 use App\Models\Medicine;
@@ -44,11 +45,34 @@ class ClientVisitController extends Controller
             ->with('status', 'New visit created. Identity fields copied from the previous visit.');
     }
 
-    public function encode(Request $request, Client $client, Visit $visit): View
+    public function encode(Request $request, Client $client, Visit $visit): View|RedirectResponse
     {
         abort_unless($visit->client_id === $client->id, 404);
 
         $user = $request->user();
+        $user->loadMissing('station');
+
+        $requiresConsultationLock = $user->isConsultationEncoder()
+            && $visit->isQueuedForConsultation()
+            && $visit->disposition === VisitDisposition::Active;
+
+        $consultationLockHeld = false;
+
+        if ($requiresConsultationLock) {
+            if (! $visit->acquireConsultationLock($user)) {
+                $visit->loadMissing('consultationLocker:id,name');
+
+                return redirect()
+                    ->route('clients.index')
+                    ->withErrors([
+                        'consultation_lock' => 'This patient is being treated by '
+                            .($visit->consultationLocker?->name ?? 'another consultant')
+                            .'.',
+                    ]);
+            }
+
+            $consultationLockHeld = true;
+        }
 
         $stations = Station::query()
             ->where('is_active', true)
@@ -183,6 +207,13 @@ class ClientVisitController extends Controller
             'medicineOptions' => $medicineOptions,
             'recommendedMedicines' => $recommendedMedicines,
             'dispensedMedicines' => $dispensedMedicines,
+            'consultationLockHeld' => $consultationLockHeld,
+            'consultationHeartbeatUrl' => $consultationLockHeld
+                ? route('clients.visits.consultation-lock.heartbeat', [$client, $visit])
+                : null,
+            'consultationReleaseUrl' => $consultationLockHeld
+                ? route('clients.visits.consultation-lock.release', [$client, $visit])
+                : null,
         ]);
     }
 
@@ -232,7 +263,30 @@ class ClientVisitController extends Controller
         ]);
 
         $user = $request->user();
+        $user->loadMissing('station');
         $service->assertCanEdit($user, $field);
+
+        if ($user->isConsultationEncoder()
+            && $visit->isQueuedForConsultation()
+            && $visit->disposition === VisitDisposition::Active
+        ) {
+            Visit::clearExpiredConsultationLocks();
+            $visit->refresh();
+
+            if ($visit->isConsultationLockedByOther($user)) {
+                $visit->loadMissing('consultationLocker:id,name');
+
+                return response()->json([
+                    'status' => 'locked',
+                    'message' => 'This patient is being treated by '
+                        .($visit->consultationLocker?->name ?? 'another consultant')
+                        .'.',
+                ], 423);
+            }
+
+            // Keep the hold alive while the consultant is actively encoding.
+            $visit->touchConsultationLock($user);
+        }
 
         $result = $service->save(
             visit: $visit,

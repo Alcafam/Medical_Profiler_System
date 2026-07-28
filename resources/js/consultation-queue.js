@@ -1,3 +1,5 @@
+import Alpine from 'alpinejs';
+
 export function consultationQueueToggle({ url, initial, locked }) {
     return {
         queued: initial,
@@ -92,5 +94,147 @@ export function consultationDisposition({ url, initial, reloadOnChange = true })
                 this.saving = false;
             }
         },
+    };
+}
+
+function ensureConsultationLocksStore(seed = {}) {
+    if (!Alpine.store('consultationLocks')) {
+        Alpine.store('consultationLocks', {
+            locksByVisit: {},
+            lockFor(visitId) {
+                return this.locksByVisit[String(visitId)] || null;
+            },
+            isLockedByOther(visitId) {
+                const lock = this.lockFor(visitId);
+                return Boolean(lock && !lock.is_mine);
+            },
+            isLockedByMe(visitId) {
+                const lock = this.lockFor(visitId);
+                return Boolean(lock && lock.is_mine);
+            },
+            replaceLocks(map) {
+                this.locksByVisit = map;
+            },
+        });
+    }
+
+    Alpine.store('consultationLocks').replaceLocks(seed);
+}
+
+export function consultationQueueLocks({ pollUrl, currentUserId, initialLocks = [], intervalMs = 4000 }) {
+    const seed = {};
+    (initialLocks || []).forEach((lock) => {
+        if (lock?.visit_id != null) {
+            seed[String(lock.visit_id)] = lock;
+        }
+    });
+
+    ensureConsultationLocksStore(seed);
+
+    return {
+        currentUserId,
+        timer: null,
+        init() {
+            this.refresh();
+            this.timer = setInterval(() => this.refresh(), intervalMs);
+        },
+        destroy() {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+        },
+        async refresh() {
+            try {
+                const response = await fetch(pollUrl, {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                const map = {};
+                (data.locks || []).forEach((lock) => {
+                    map[String(lock.visit_id)] = lock;
+                });
+                Alpine.store('consultationLocks').replaceLocks(map);
+            } catch (e) {
+                // Keep last known locks on transient network errors.
+            }
+        },
+    };
+}
+
+export function startConsultationLockHeartbeat({ heartbeatUrl, releaseUrl, intervalMs = 25000 }) {
+    if (!heartbeatUrl || !releaseUrl) {
+        return;
+    }
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    let stopped = false;
+
+    const beat = async () => {
+        if (stopped) {
+            return;
+        }
+
+        try {
+            const response = await fetch(heartbeatUrl, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.status === 423) {
+                stopped = true;
+                window.location.href = '/clients';
+            }
+        } catch (e) {
+            // Ignore transient errors; next beat will retry.
+        }
+    };
+
+    const release = () => {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+
+        fetch(releaseUrl, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: '{}',
+            credentials: 'same-origin',
+            keepalive: true,
+        }).catch(() => {});
+    };
+
+    beat();
+    const timer = setInterval(beat, intervalMs);
+
+    window.addEventListener('pagehide', release);
+    window.addEventListener('beforeunload', release);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && !stopped) {
+            beat();
+        }
+    });
+
+    return () => {
+        clearInterval(timer);
+        release();
     };
 }

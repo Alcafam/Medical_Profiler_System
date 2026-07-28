@@ -51,6 +51,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('clients.visits.consultation-queue');
     Route::patch('/clients/{client}/visits/{visit}/disposition', [ConsultationQueueController::class, 'updateDisposition'])
         ->name('clients.visits.disposition');
+    Route::get('/consultation-queue/locks', [ConsultationQueueController::class, 'locks'])
+        ->name('consultation-queue.locks');
+    Route::post('/clients/{client}/visits/{visit}/consultation-lock/heartbeat', [ConsultationQueueController::class, 'heartbeat'])
+        ->name('clients.visits.consultation-lock.heartbeat');
+    Route::post('/clients/{client}/visits/{visit}/consultation-lock/release', [ConsultationQueueController::class, 'release'])
+        ->name('clients.visits.consultation-lock.release');
 
     Route::post('/clients/{client}/visits/{visit}/medicine-recommendations', [VisitMedicineController::class, 'storeRecommendation'])
         ->name('clients.visits.medicine-recommendations.store');

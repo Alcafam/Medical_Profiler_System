@@ -18,10 +18,12 @@ class ConsultationQueueController extends Controller
         $user->loadMissing('station');
         abort_unless($user->isConsultationEncoder(), 403);
 
+        Visit::clearExpiredConsultationLocks();
+
         $tab = $request->input('tab', 'active') === 'completed' ? 'completed' : 'active';
 
         $query = Visit::query()
-            ->with(['client', 'fieldValues.formField'])
+            ->with(['client', 'fieldValues.formField', 'consultationLocker:id,name'])
             ->when(
                 $tab === 'active',
                 fn ($q) => $q->consultationActive()->orderBy('queued_for_consultation_at'),
@@ -46,6 +48,20 @@ class ConsultationQueueController extends Controller
         $activeCount = Visit::query()->consultationActive()->count();
         $completedCount = Visit::query()->consultationCompleted()->count();
 
+        $initialLocks = $tab === 'active'
+            ? $visits->getCollection()
+                ->filter(fn (Visit $visit) => $visit->hasFreshConsultationLock())
+                ->map(fn (Visit $visit) => [
+                    'visit_id' => $visit->id,
+                    'locked_by' => $visit->consultation_locked_by,
+                    'locked_by_name' => $visit->consultationLocker?->name,
+                    'locked_at' => $visit->consultation_locked_at?->toIso8601String(),
+                    'is_mine' => (int) $visit->consultation_locked_by === (int) $user->id,
+                ])
+                ->values()
+                ->all()
+            : [];
+
         return view('clients.consultation-queue', [
             'visits' => $visits,
             'tab' => $tab,
@@ -53,7 +69,70 @@ class ConsultationQueueController extends Controller
             'activeCount' => $activeCount,
             'completedCount' => $completedCount,
             'dispositions' => VisitDisposition::cases(),
+            'currentUserId' => $user->id,
+            'locksPollUrl' => route('consultation-queue.locks'),
+            'initialLocks' => $initialLocks,
         ]);
+    }
+
+    public function locks(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->loadMissing('station');
+        abort_unless($user->isConsultationEncoder(), 403);
+
+        Visit::clearExpiredConsultationLocks();
+
+        $locks = Visit::query()
+            ->consultationActive()
+            ->whereNotNull('consultation_locked_by')
+            ->where('consultation_locked_at', '>=', now()->subSeconds(Visit::CONSULTATION_LOCK_SECONDS))
+            ->with('consultationLocker:id,name')
+            ->get()
+            ->map(fn (Visit $visit) => [
+                'visit_id' => $visit->id,
+                'locked_by' => $visit->consultation_locked_by,
+                'locked_by_name' => $visit->consultationLocker?->name,
+                'locked_at' => $visit->consultation_locked_at?->toIso8601String(),
+                'is_mine' => (int) $visit->consultation_locked_by === (int) $user->id,
+            ])
+            ->values();
+
+        return response()->json(['locks' => $locks]);
+    }
+
+    public function heartbeat(Request $request, Client $client, Visit $visit): JsonResponse
+    {
+        abort_unless($visit->client_id === $client->id, 404);
+
+        $user = $request->user();
+        $user->loadMissing('station');
+        abort_unless($user->isConsultationEncoder(), 403);
+
+        if (! $visit->touchConsultationLock($user)) {
+            $visit->loadMissing('consultationLocker:id,name');
+
+            return response()->json([
+                'status' => 'locked',
+                'message' => 'This patient is being treated by '.$visit->consultationLocker?->name.'.',
+                'locked_by_name' => $visit->consultationLocker?->name,
+            ], 423);
+        }
+
+        return response()->json([
+            'status' => 'ok',
+            'locked_until' => now()->addSeconds(Visit::CONSULTATION_LOCK_SECONDS)->toIso8601String(),
+        ]);
+    }
+
+    public function release(Request $request, Client $client, Visit $visit): JsonResponse
+    {
+        abort_unless($visit->client_id === $client->id, 404);
+
+        $user = $request->user();
+        $visit->releaseConsultationLock($user);
+
+        return response()->json(['status' => 'released']);
     }
 
     public function updateDisposition(Request $request, Client $client, Visit $visit): JsonResponse
@@ -66,6 +145,20 @@ class ConsultationQueueController extends Controller
         $data = $request->validate([
             'disposition' => ['required', Rule::enum(VisitDisposition::class)],
         ]);
+
+        Visit::clearExpiredConsultationLocks();
+        $visit->refresh();
+
+        if ($user->isConsultationEncoder() && $visit->isConsultationLockedByOther($user)) {
+            $visit->loadMissing('consultationLocker:id,name');
+
+            return response()->json([
+                'status' => 'locked',
+                'message' => 'This patient is being treated by '
+                    .($visit->consultationLocker?->name ?? 'another consultant')
+                    .'.',
+            ], 423);
+        }
 
         $disposition = VisitDisposition::from($data['disposition']);
 

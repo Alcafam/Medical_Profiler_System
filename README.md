@@ -44,7 +44,7 @@ Password for all: `12345678`
 - New visit copies only: last name, first name, DOB, sex, client type
 - Global form with seeded core fields (editable in form builder)
 - Station-based encoding with field-level autosave
-- **Consultation queue** — Blood Glucose can send patients to consult; consultation encoders see an Active/Completed queue
+- **Consultation queue** — Blood Glucose can send patients to consult; consultation encoders see an Active/Completed queue with live “in consult” locks
 - **Medicine inventory** — admin/super admin CRUD with expiry row colors and archive; seeded from mission inventory CSV
 - **Prescription** — Consultation picks from inventory (no stock change); out-of-stock and expired meds are hidden
 - **Dispense** — Pharmacy picks from inventory and updates QTY Dispensed / Remaining
